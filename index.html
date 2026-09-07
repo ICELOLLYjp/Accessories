@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#EFF1F6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="アクセサリー在庫">
+  <title>アクセサリー在庫</title>
+
+  <style>
+    :root {
+      --bg: #EFF1F6;
+      --ink: #262A3D;
+      --ink-soft: #6B7086;
+      --surface: #FFFFFF;
+      --line: #DFE2EC;
+      --standard: #2EC4B6;
+      --standard-soft: #E4F9F6;
+      --puraplara: #F45B8D;
+      --puraplara-soft: #FEE9F0;
+      --gold: #E8A33D;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+        "Yu Gothic", "Noto Sans JP", sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      touch-action: manipulation;
+    }
+
+    .app-root {
+      width: min(100%, 1100px);
+      min-height: 100vh;
+      margin: 0 auto;
+      padding:
+        max(20px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(60px, calc(env(safe-area-inset-bottom) + 28px))
+        max(16px, env(safe-area-inset-left));
+    }
+
+    .header {
+      margin-bottom: 18px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .header p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .save-flash {
+      display: inline-block;
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--standard);
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity 0.3s;
+      vertical-align: middle;
+    }
+
+    .save-flash.show {
+      opacity: 1;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 16px;
+      min-width: 100px;
+      flex: 1;
+    }
+
+    .stat-card .num {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+
+    .stat-card .lbl {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 2px;
+    }
+
+    .stat-card.zero .num {
+      color: var(--puraplara);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1 1 220px;
+      min-width: 140px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .search-input:focus,
+    .panel input[type="text"]:focus,
+    .panel textarea:focus,
+    .stepper-num:focus {
+      outline: 2px solid var(--gold);
+      outline-offset: 1px;
+    }
+
+    .chip {
+      min-height: 38px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .chip.active-all {
+      background: var(--ink);
+      color: #fff;
+      border-color: var(--ink);
+    }
+
+    .chip.active-standard {
+      background: var(--standard);
+      color: #fff;
+      border-color: var(--standard);
+    }
+
+    .chip.active-puraplara {
+      background: var(--puraplara);
+      color: #fff;
+      border-color: var(--puraplara);
+    }
+
+    .chip.zero-active {
+      background: var(--gold);
+      color: #fff;
+      border-color: var(--gold);
+    }
+
+    .btn {
+      min-height: 40px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: none;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .panel h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+
+    .panel form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .panel input[type="text"],
+    .panel textarea {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 16px;
+      width: 100%;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .panel textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .radio-row {
+      display: flex;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--ink-soft);
+      flex-wrap: wrap;
+    }
+
+    .radio-row label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      min-height: 32px;
+    }
+
+    .panel-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 22px 0 10px;
+    }
+
+    .section-title .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .section-title h2 {
+      font-size: 17px;
+      margin: 0;
+    }
+
+    .section-title .count {
+      font-size: 12px;
+      color: var(--ink-soft);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .card.zero-stock {
+      border-color: var(--puraplara);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .card-name {
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+      padding-top: 5px;
+    }
+
+    .card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .priority-btn,
+    .move-btn,
+    .card-del {
+      min-height: 30px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 4px 7px;
+      color: var(--ink-soft);
+    }
+
+    .priority-btn.active {
+      color: #9B6512;
+      background: #FFF3DA;
+      border-color: #F0D397;
+    }
+
+    .move-btn {
+      min-width: 30px;
+      font-size: 15px;
+      padding: 2px 6px;
+      color: var(--ink);
+    }
+
+    .card-del {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .priority-section .card {
+      border-color: #E8C77D;
+      box-shadow: 0 2px 10px rgba(38, 42, 61, 0.04);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .badge-standard {
+      background: var(--standard-soft);
+      color: #1B8A80;
+    }
+
+    .badge-puraplara {
+      background: var(--puraplara-soft);
+      color: #C93368;
+    }
+
+    .badge-shared {
+      background: #FFF3DA;
+      color: #A66C10;
+    }
+
+    .badge-out {
+      background: #FCE4E4;
+      color: #C93030;
+    }
+
+    .badge-priority {
+      background: #FFF3DA;
+      color: #9B6512;
+    }
+
+    .chip.priority-active {
+      background: #E8A33D;
+      color: #fff;
+      border-color: #E8A33D;
+    }
+
+    .sort-select {
+      min-height: 38px;
+      padding: 8px 34px 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .stock-pair {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--line);
+      flex-wrap: wrap;
+    }
+
+    .stock-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .stock-field .fld-lbl {
+      font-size: 11px;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stepper-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--accent, var(--ink));
+      font-weight: 800;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stepper-num {
+      width: 48px;
+      height: 36px;
+      text-align: center;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 3px 2px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+      background: #fff;
+    }
+
+    .stepper-num::-webkit-outer-spin-button,
+    .stepper-num::-webkit-inner-spin-button {
+      margin: 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 16px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    @media (max-width: 560px) {
+      .app-root {
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+      }
+
+      .header h1 {
+        font-size: 26px;
+      }
+
+      .header p {
+        font-size: 13px;
+      }
+
+      .stats-row {
+        gap: 7px;
+      }
+
+      .stat-card {
+        min-width: 0;
+        padding: 10px 10px;
+      }
+
+      .stat-card .num {
+        font-size: 20px;
+      }
+
+      .stat-card .lbl {
+        font-size: 11px;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stock-pair {
+        justify-content: space-between;
+      }
+
+      .controls:first-of-type .search-input {
+        flex-basis: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app-root">
+    <div class="header">
+      <h1>
+        アクセサリー在庫
+        <span id="saveFlash" class="save-flash">保存しました</span>
+      </h1>
+      <p>在庫数を管理し、★ 優先で制作順を指定できます。優先商品は一覧の上に表示されます。</p>
+    </div>
+
+    <div id="app"></div>
+  </main>
+
+  <script>
+    const STANDARD_NAMES = [
+      "ハリネズミ","りんご","気球","パンダ","ねこ","ひよこ","ホットケーキ","女の子","宇宙飛行士","くま",
+      "覆面レスラー","牛","黒やぎ","白やぎ","家","車","目玉焼き","インコ","ろーりーくん","うさぎ",
+      "パズルA","白オカメインコ","のりおにぎり","オムライス","ぶた","マトリョーシカ","チョコドーナツ","柴犬","シュナウザー","プードル",
+      "フレンチブルドッグ","くじゃく","サボテン(丸)","寿司(マグロ)","サメ","フラミンゴ","きのこ(長)","クロネコ","フクロウ","文鳥(グレー)",
+      "エイリアン(緑)","アザラシ","シロクマ","ナマケモノ","ラッコ","バイキン","トマト","ペンギン","赤ずきん","アリス",
+      "白雪姫","はにわ","タコ","カモ(オス)","キウイ","ジンベエザメ(ブルー)","ライオン","エイ(背中)","だるま(赤)","クマ",
+      "カラス","マンボウ","ヨット","クマノミ","UFO","メンダコ","Vライチョウ(冬)","タヌキ","キツネ","ユニコーン",
+      "招き猫","カモメ","ウミウシ","リス","イチゴ","スイカ(赤)","コアラ","原始人","プリン","パンク",
+      "ファンク","赤おに","ティラノ","エナガ","ゴリラ","マグロ","ファラオくん","にんにく","ハロウィン","タコス",
+      "カバ","あひる"
+    ];
+
+    const PURAPURA_NAMES = [
+      "コアラ","キノコ","フレブル(黒)","フレブル(白)","ねこ(グレー)","ねこ(ぶち)","ねこ(白)","ねこ(黒)","ペンギン","カメレオン",
+      "オカメインコ","セキセイインコ","ぶた","おにぎり","ロブスター×カニ","柴犬","ボーリング","漫才","フラガール","しろくま",
+      "たこさんウインナー×目玉焼き","ろーりーくん","うさぎ","ハムスター","牛","虎","ハイヒール","恐竜","サメ","羊",
+      "マンタ","ライオン","エイ","スイカ","うま","サンタ","カバ","くじら","プードル","ヤギ"
+    ];
+
+    const STORAGE_KEY = "accessory-inventory-designs-v1";
+
+    const CATEGORY_INFO = {
+      standard: {
+        label: "スタンダード",
+        sub: "スタンダード",
+        color: "#2EC4B6"
+      },
+      puraplara: {
+        label: "プラプラ",
+        sub: "プラプラ",
+        color: "#F45B8D"
+      }
+    };
+
+    function makeSeed() {
+      const list = [];
+
+      STANDARD_NAMES.forEach((name, index) => {
+        list.push({
+          id: "std-" + (index + 1),
+          name,
+          category: "standard",
+          piercing: 0,
+          earring: 0,
+          priority: 0
+        });
+      });
+
+      PURAPURA_NAMES.forEach((name, index) => {
+        list.push({
+          id: "pp-" + (index + 1),
+          name,
+          category: "puraplara",
+          piercing: 0,
+          earring: 0,
+          priority: 0
+        });
+      });
+
+      return list;
+    }
+
+    function loadDesigns() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            return parsed.map((item) => ({
+              ...item,
+              piercing: Math.max(0, Number(item.piercing || 0)),
+              earring: Math.max(0, Number(item.earring || 0)),
+              priority: Math.max(0, Number(item.priority || 0))
+            }));
+          }
+        }
+      } catch (error) {
+        console.warn("在庫データを読み込めませんでした。", error);
+      }
+
+      return makeSeed();
+    }
+
+    const state = {
+      designs: loadDesigns(),
+      query: "",
+      catFilter: "all",
+      zeroOnly: false,
+      priorityOnly: false,
+      stockSort: "default",
+      panel: null,
+      newCategory: "standard",
+      bulkCategory: "standard"
+    };
+
+    let saveTimer = null;
+
+    function saveDesigns() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state.designs));
+        showSaved();
+      } catch (error) {
+        console.warn("在庫データを保存できませんでした。", error);
+      }
+    }
+
+    function showSaved() {
+      const el = document.getElementById("saveFlash");
+      if (!el) return;
+
+      el.classList.add("show");
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => {
+        el.classList.remove("show");
+      }, 900);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getNameCounts() {
+      const counts = {};
+      state.designs.forEach((item) => {
+        counts[item.name] = (counts[item.name] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function getStats() {
+      let pieces = 0;
+      let zero = 0;
+
+      state.designs.forEach((item) => {
+        const total = Number(item.piercing || 0) + Number(item.earring || 0);
+        pieces += total;
+        if (total === 0) zero += 1;
+      });
+
+      return {
+        total: state.designs.length,
+        pieces,
+        zero
+      };
+    }
+
+    function normalizePriorities() {
+      const prioritized = state.designs
+        .filter((item) => Number(item.priority || 0) > 0)
+        .sort((a, b) => Number(a.priority || 0) - Number(b.priority || 0));
+
+      prioritized.forEach((item, index) => {
+        item.priority = index + 1;
+      });
+    }
+
+    function togglePriority(id) {
+      const item = state.designs.find((entry) => entry.id === id);
+      if (!item) return;
+
+      if (Number(item.priority || 0) > 0) {
+        item.priority = 0;
+        normalizePriorities();
+      } else {
+        const maxPriority = state.designs.reduce(
+          (max, entry) => Math.max(max, Number(entry.priority || 0)),
+          0
+        );
+        item.priority = maxPriority + 1;
+      }
+
+      saveDesigns();
+      render();
+    }
+
+    function movePriority(id, direction) {
+      normalizePriorities();
+
+      const prioritized = state.designs
+        .filter((item) => Number(item.priority || 0) > 0)
+        .sort((a, b) => Number(a.priority || 0) - Number(b.priority || 0));
+
+      const index = prioritized.findIndex((item) => item.id === id);
+      if (index < 0) return;
+
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= prioritized.length) return;
+
+      const current = prioritized[index];
+      const target = prioritized[targetIndex];
+      const currentPriority = current.priority;
+
+      current.priority = target.priority;
+      target.priority = currentPriority;
+
+      saveDesigns();
+      render();
+    }
+
+    function sortByStock(items) {
+      if (state.stockSort === "default") {
+        return [...items];
+      }
+
+      const sorted = [...items].sort((a, b) => {
+        const totalA = Number(a.piercing || 0) + Number(a.earring || 0);
+        const totalB = Number(b.piercing || 0) + Number(b.earring || 0);
+
+        if (totalA === totalB) {
+          return a.name.localeCompare(b.name, "ja");
+        }
+
+        return state.stockSort === "asc"
+          ? totalA - totalB
+          : totalB - totalA;
+      });
+
+      return sorted;
+    }
+
+    function getFiltered() {
+      const q = state.query.trim().toLowerCase();
+
+      return state.designs.filter((item) => {
+        if (state.catFilter !== "all" && item.category !== state.catFilter) {
+          return false;
+        }
+
+        if (q && !item.name.toLowerCase().includes(q)) {
+          return false;
+        }
+
+        if (state.zeroOnly) {
+          const total = Number(item.piercing || 0) + Number(item.earring || 0);
+          if (total !== 0) return false;
+        }
+
+        if (state.priorityOnly && Number(item.priority || 0) <= 0) {
+          return false;
+        }
+
+        return true;
+      });
+    }
+
+    function stepperHtml(item, field, accent) {
+      const value = Math.max(0, Number(item[field] || 0));
+
+      return `
+        <div class="stepper">
+          <button
+            type="button"
+            class="stepper-btn"
+            style="--accent:${accent}"
+            data-action="decrement"
+            data-id="${escapeHtml(item.id)}"
+            data-field="${field}"
+            aria-label="1減らす"
+          >−</button>
+
+          <input
+            class="stepper-num"
+            type="number"
+            inputmode="numeric"
+            min="0"
+            value="${value}"
+            data-action="number"
+            data-id="${escapeHtml(item.id)}"
+            data-field="${field}"
+            aria-label="${field === "piercing" ? "ピアス在庫" : "イヤリング在庫"}"
+          >
+
+          <button
+            type="button"
+            class="stepper-btn"
+            style="--accent:${accent}"
+            data-action="increment"
+            data-id="${escapeHtml(item.id)}"
+            data-field="${field}"
+            aria-label="1増やす"
+          >+</button>
+        </div>
+      `;
+    }
+
+    function cardHtml(item, nameCounts) {
+      const info = CATEGORY_INFO[item.category];
+      const total = Number(item.piercing || 0) + Number(item.earring || 0);
+      const shared = nameCounts[item.name] > 1;
+      const priority = Number(item.priority || 0);
+
+      return `
+        <div class="card${total === 0 ? " zero-stock" : ""}">
+          <div class="card-top">
+            <div class="card-name">${escapeHtml(item.name)}</div>
+
+            <div class="card-actions">
+              <button
+                type="button"
+                class="priority-btn${priority > 0 ? " active" : ""}"
+                data-action="toggle-priority"
+                data-id="${escapeHtml(item.id)}"
+                aria-label="${priority > 0 ? "優先から外す" : "制作優先にする"}"
+              >${priority > 0 ? "★ 優先" : "☆ 優先"}</button>
+
+              ${priority > 0 ? `
+                <button
+                  type="button"
+                  class="move-btn"
+                  data-action="move-priority"
+                  data-direction="up"
+                  data-id="${escapeHtml(item.id)}"
+                  aria-label="優先順位を上げる"
+                >↑</button>
+
+                <button
+                  type="button"
+                  class="move-btn"
+                  data-action="move-priority"
+                  data-direction="down"
+                  data-id="${escapeHtml(item.id)}"
+                  aria-label="優先順位を下げる"
+                >↓</button>
+              ` : ""}
+
+              <button
+                type="button"
+                class="card-del"
+                data-action="delete"
+                data-id="${escapeHtml(item.id)}"
+              >削除</button>
+            </div>
+          </div>
+
+          <div class="badge-row">
+            <span class="badge badge-${escapeHtml(item.category)}">${escapeHtml(info.sub)}</span>
+            ${priority > 0 ? `<span class="badge badge-priority">制作優先 ${priority}</span>` : ""}
+            ${shared ? '<span class="badge badge-shared">同名デザインあり</span>' : ""}
+            ${total === 0 ? '<span class="badge badge-out">在庫切れ</span>' : ""}
+          </div>
+
+          <div class="stock-pair">
+            <div class="stock-field">
+              <span class="fld-lbl">ピアス</span>
+              ${stepperHtml(item, "piercing", info.color)}
+            </div>
+
+            <div class="stock-field">
+              <span class="fld-lbl">イヤリング</span>
+              ${stepperHtml(item, "earring", info.color)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function priorityHtml(items, nameCounts) {
+      if (items.length === 0) return "";
+
+      const sorted = [...items].sort(
+        (a, b) => Number(a.priority || 0) - Number(b.priority || 0)
+      );
+
+      return `
+        <section class="priority-section">
+          <div class="section-title">
+            <span class="dot" style="background:#E8A33D"></span>
+            <h2>制作優先</h2>
+            <span class="count">${sorted.length}件</span>
+          </div>
+
+          <div class="grid">
+            ${sorted.map((item) => cardHtml(item, nameCounts)).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function categoryHtml(catKey, items, nameCounts) {
+      if (items.length === 0) return "";
+
+      const info = CATEGORY_INFO[catKey];
+
+      return `
+        <section>
+          <div class="section-title">
+            <span class="dot" style="background:${info.color}"></span>
+            <h2>${escapeHtml(info.label)}</h2>
+            <span class="count">${items.length}件</span>
+          </div>
+
+          <div class="grid">
+            ${items.map((item) => cardHtml(item, nameCounts)).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function panelHtml() {
+      if (state.panel === "add") {
+        return `
+          <div class="panel">
+            <h3>デザインを追加</h3>
+
+            <form id="addForm">
+              <input
+                id="newName"
+                type="text"
+                placeholder="デザイン名(例: しろくま)"
+                autocomplete="off"
+                required
+              >
+
+              <div class="radio-row">
+                <label>
+                  <input
+                    type="radio"
+                    name="newCategory"
+                    value="standard"
+                    ${state.newCategory === "standard" ? "checked" : ""}
+                  >
+                  スタンダード(ピアスのみ)
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="newCategory"
+                    value="puraplara"
+                    ${state.newCategory === "puraplara" ? "checked" : ""}
+                  >
+                  プラプラ(ピアス+イヤリング)
+                </label>
+              </div>
+
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-action="close-panel">
+                  キャンセル
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  追加する
+                </button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      if (state.panel === "bulk") {
+        return `
+          <div class="panel">
+            <h3>一括追加(1行に1デザイン)</h3>
+
+            <form id="bulkForm">
+              <textarea
+                id="bulkText"
+                placeholder="例:&#10;きりん&#10;パグ&#10;UFO"
+                required
+              ></textarea>
+
+              <div class="radio-row">
+                <label>
+                  <input
+                    type="radio"
+                    name="bulkCategory"
+                    value="standard"
+                    ${state.bulkCategory === "standard" ? "checked" : ""}
+                  >
+                  スタンダード(ピアスのみ)
+                </label>
+
+                <label>
+                  <input
+                    type="radio"
+                    name="bulkCategory"
+                    value="puraplara"
+                    ${state.bulkCategory === "puraplara" ? "checked" : ""}
+                  >
+                  プラプラ(ピアス+イヤリング)
+                </label>
+              </div>
+
+              <div class="panel-actions">
+                <button type="button" class="btn btn-ghost" data-action="close-panel">
+                  キャンセル
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  追加する
+                </button>
+              </div>
+            </form>
+          </div>
+        `;
+      }
+
+      return "";
+    }
+
+    function render(options = {}) {
+      const app = document.getElementById("app");
+      const stats = getStats();
+      const nameCounts = getNameCounts();
+      const filtered = getFiltered();
+
+      const priorityItems = filtered.filter((item) => Number(item.priority || 0) > 0);
+      const regularItems = filtered.filter((item) => Number(item.priority || 0) <= 0);
+
+      const standard = sortByStock(
+        regularItems.filter((item) => item.category === "standard")
+      );
+      const puraplara = sortByStock(
+        regularItems.filter((item) => item.category === "puraplara")
+      );
+
+      app.innerHTML = `
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="num">${stats.total}</div>
+            <div class="lbl">デザイン数</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="num">${stats.pieces}</div>
+            <div class="lbl">総在庫数(点)</div>
+          </div>
+
+          <div class="stat-card zero">
+            <div class="num">${stats.zero}</div>
+            <div class="lbl">在庫切れ</div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <input
+            id="searchInput"
+            class="search-input"
+            placeholder="デザイン名で検索"
+            value="${escapeHtml(state.query)}"
+            autocomplete="off"
+          >
+
+          <button
+            type="button"
+            class="chip${state.catFilter === "all" ? " active-all" : ""}"
+            data-action="filter"
+            data-filter="all"
+          >すべて</button>
+
+          <button
+            type="button"
+            class="chip${state.catFilter === "standard" ? " active-standard" : ""}"
+            data-action="filter"
+            data-filter="standard"
+          >スタンダード</button>
+
+          <button
+            type="button"
+            class="chip${state.catFilter === "puraplara" ? " active-puraplara" : ""}"
+            data-action="filter"
+            data-filter="puraplara"
+          >プラプラ</button>
+
+          <button
+            type="button"
+            class="chip${state.zeroOnly ? " zero-active" : ""}"
+            data-action="zero-only"
+          >在庫切れのみ</button>
+
+          <button
+            type="button"
+            class="chip${state.priorityOnly ? " priority-active" : ""}"
+            data-action="priority-only"
+          >★ 優先のみ</button>
+
+          <select id="stockSort" class="sort-select" aria-label="在庫数で並び替え">
+            <option value="default"${state.stockSort === "default" ? " selected" : ""}>登録順</option>
+            <option value="asc"${state.stockSort === "asc" ? " selected" : ""}>在庫 少ない順</option>
+            <option value="desc"${state.stockSort === "desc" ? " selected" : ""}>在庫 多い順</option>
+          </select>
+        </div>
+
+        <div class="controls">
+          <button
+            type="button"
+            class="btn btn-primary"
+            data-action="toggle-panel"
+            data-panel="add"
+          >+ デザイン追加</button>
+
+          <button
+            type="button"
+            class="btn btn-ghost"
+            data-action="toggle-panel"
+            data-panel="bulk"
+          >一括追加</button>
+        </div>
+
+        ${panelHtml()}
+
+        ${priorityHtml(priorityItems, nameCounts)}
+
+        ${!state.priorityOnly && (state.catFilter === "all" || state.catFilter === "standard")
+          ? categoryHtml("standard", standard, nameCounts)
+          : ""}
+
+        ${!state.priorityOnly && (state.catFilter === "all" || state.catFilter === "puraplara")
+          ? categoryHtml("puraplara", puraplara, nameCounts)
+          : ""}
+
+        ${filtered.length === 0
+          ? '<div class="empty-state">該当するデザインがありません</div>'
+          : ""}
+      `;
+
+      attachFormHandlers();
+
+      if (options.focus === "search") {
+        const input = document.getElementById("searchInput");
+        if (input) {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        }
+      }
+
+      if (options.focus === "newName") {
+        document.getElementById("newName")?.focus();
+      }
+
+      if (options.focus === "bulkText") {
+        document.getElementById("bulkText")?.focus();
+      }
+    }
+
+    function attachFormHandlers() {
+      const addForm = document.getElementById("addForm");
+      if (addForm) {
+        addForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const name = document.getElementById("newName").value.trim();
+          if (!name) return;
+
+          const selected = document.querySelector('input[name="newCategory"]:checked');
+          const category = selected ? selected.value : "standard";
+
+          state.designs.push({
+            id: category + "-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+            name,
+            category,
+            piercing: 0,
+            earring: 0,
+            priority: 0
+          });
+
+          state.newCategory = category;
+          state.panel = null;
+          saveDesigns();
+          render();
+        });
+      }
+
+      const bulkForm = document.getElementById("bulkForm");
+      if (bulkForm) {
+        bulkForm.addEventListener("submit", (event) => {
+          event.preventDefault();
+
+          const text = document.getElementById("bulkText").value;
+          const lines = text
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean);
+
+          if (lines.length === 0) return;
+
+          const selected = document.querySelector('input[name="bulkCategory"]:checked');
+          const category = selected ? selected.value : "standard";
+          const now = Date.now();
+
+          lines.forEach((name, index) => {
+            state.designs.push({
+              id: category + "-bulk-" + now + "-" + index,
+              name,
+              category,
+              piercing: 0,
+              earring: 0,
+              priority: 0
+            });
+          });
+
+          state.bulkCategory = category;
+          state.panel = null;
+          saveDesigns();
+          render();
+        });
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+
+      const action = button.dataset.action;
+
+      if (action === "filter") {
+        state.catFilter = button.dataset.filter;
+        render();
+        return;
+      }
+
+      if (action === "zero-only") {
+        state.zeroOnly = !state.zeroOnly;
+        render();
+        return;
+      }
+
+      if (action === "priority-only") {
+        state.priorityOnly = !state.priorityOnly;
+        render();
+        return;
+      }
+
+      if (action === "toggle-priority") {
+        togglePriority(button.dataset.id);
+        return;
+      }
+
+      if (action === "move-priority") {
+        movePriority(button.dataset.id, button.dataset.direction);
+        return;
+      }
+
+      if (action === "toggle-panel") {
+        const requested = button.dataset.panel;
+        state.panel = state.panel === requested ? null : requested;
+        render({
+          focus: state.panel === "add" ? "newName" : state.panel === "bulk" ? "bulkText" : undefined
+        });
+        return;
+      }
+
+      if (action === "close-panel") {
+        state.panel = null;
+        render();
+        return;
+      }
+
+      if (action === "delete") {
+        const id = button.dataset.id;
+        state.designs = state.designs.filter((item) => item.id !== id);
+        normalizePriorities();
+        saveDesigns();
+        render();
+        return;
+      }
+
+      if (action === "increment" || action === "decrement") {
+        const id = button.dataset.id;
+        const field = button.dataset.field;
+        const item = state.designs.find((entry) => entry.id === id);
+        if (!item) return;
+
+        const current = Math.max(0, Number(item[field] || 0));
+        item[field] = action === "increment" ? current + 1 : Math.max(0, current - 1);
+
+        saveDesigns();
+        render();
+      }
+    });
+
+    document.addEventListener("input", (event) => {
+      if (event.target.id === "searchInput") {
+        state.query = event.target.value;
+        render({ focus: "search" });
+        return;
+      }
+
+      if (event.target.matches('[data-action="number"]')) {
+        const id = event.target.dataset.id;
+        const field = event.target.dataset.field;
+        const item = state.designs.find((entry) => entry.id === id);
+        if (!item) return;
+
+        const parsed = parseInt(event.target.value, 10);
+        item[field] = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
+        saveDesigns();
+      }
+    });
+
+    document.addEventListener("change", (event) => {
+      if (event.target.id === "stockSort") {
+        state.stockSort = event.target.value;
+        render();
+        return;
+      }
+
+      if (event.target.name === "newCategory") {
+        state.newCategory = event.target.value;
+        return;
+      }
+
+      if (event.target.name === "bulkCategory") {
+        state.bulkCategory = event.target.value;
+        return;
+      }
+
+      if (event.target.matches('[data-action="number"]')) {
+        render();
+      }
+    });
+
+    normalizePriorities();
+    render();
+  </script>
+</body>
+</html>
