@@ -18,23 +18,24 @@
     .status{font-size:12px;line-height:1.5;color:var(--sub);margin-top:7px}.status.ok{color:var(--ok);font-weight:800}.status.err{color:var(--danger);font-weight:800}
     .summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}.stat strong{display:block;font-size:22px}.stat span{font-size:11px;color:var(--sub)}
     .tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+    .checkpoint-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}.checkpoint-card{background:#f5fbfa;border-color:#bfe4df}.checkpoint-card strong{font-size:14px}.checkpoint-count{font-weight:900;color:var(--ok)}
     .chips{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}.chip{flex:0 0 auto;min-height:38px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 12px;font-size:12px;font-weight:800;color:var(--sub)}.chip.active{background:var(--text);border-color:var(--text);color:#fff}
     .sort-note{font-size:11px;color:var(--sub);line-height:1.45;margin-top:8px}
     .list{display:grid;gap:9px;margin-top:10px}
-    .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;display:grid;grid-template-columns:minmax(0,1fr) 154px;gap:12px;align-items:center}
+    .item{background:#fff;border:1px solid var(--line);border-radius:14px;padding:11px;display:grid;grid-template-columns:minmax(0,1fr) 154px;gap:12px;align-items:center}.item.counted{box-shadow:inset 4px 0 0 var(--accent)}
     .item.stocked{background:#FFFDF3;border-color:var(--warm-line)}
     .name{font-size:15px;font-weight:800;line-height:1.3;overflow-wrap:anywhere}.detail{font-size:11px;line-height:1.45;color:var(--sub);margin-top:4px;overflow-wrap:anywhere}.opening{font-size:11px;color:var(--muted);margin-top:5px}
-    .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:800;background:#F0F1F5;color:var(--sub)}.badge.stocked{background:var(--warm);color:#7B5D00}.badge.registered{background:var(--accent-soft);color:#14766D}
+    .badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}.badge{display:inline-block;padding:3px 7px;border-radius:999px;font-size:9px;font-weight:800;background:#F0F1F5;color:var(--sub)}.badge.stocked{background:var(--warm);color:#7B5D00}.badge.registered{background:var(--accent-soft);color:#14766D}.badge.counted{background:#dff5f1;color:#126d64}
     .step{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center}.step .qty{grid-column:1/-1;grid-row:1}.step button:first-child{grid-column:1;grid-row:2}.step button:last-child{grid-column:2;grid-row:2}.step button{height:46px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:26px;font-weight:900;color:#218F85;touch-action:manipulation}.step button:active{transform:scale(.96);background:var(--accent-soft)}
     .qty{width:100%;height:50px;border:1px solid var(--line);border-radius:10px;text-align:center;font-size:20px;font-weight:800;color:var(--text);background:#fff}
     .note{font-size:12px;color:var(--sub);line-height:1.55}.hidden{display:none!important}
-    @media(max-width:560px){.app{padding-left:8px;padding-right:8px}.summary{gap:6px}.stat{padding:8px}.stat strong{font-size:19px}.item{grid-template-columns:minmax(0,1fr) 132px;padding:10px;gap:9px}.step button{height:44px}.qty{height:48px;font-size:19px}.name{font-size:14px}}
+    @media(max-width:560px){.app{padding-left:8px;padding-right:8px}.summary{gap:6px}.stat{padding:8px}.stat strong{font-size:19px}.item{grid-template-columns:minmax(0,1fr) 132px;padding:10px;gap:9px}.step button{height:44px}.qty{height:48px;font-size:19px}.name{font-size:14px}.checkpoint-tools{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
 <main class="app">
   <div class="row">
-    <div class="grow"><h1>イベント棚卸</h1><div class="sub">アクセサリーのイベント終了実数を数えます。全SKUを表示し、開始在庫がある商品を上に並べます。</div></div>
+    <div class="grow"><h1>イベント棚卸</h1><div class="sub">アクセサリーはイベント途中でも数えられます。数えたSKUだけ途中カウントとして保存し、最終終了時に再利用できます。</div></div>
     <a class="btn" style="display:flex;align-items:center;text-decoration:none" href="./">通常在庫</a>
   </div>
 
@@ -53,13 +54,23 @@
     <div id="countPanel" class="hidden">
       <div class="card summary">
         <div class="stat"><strong id="targetStat">0</strong><span>対象SKU</span></div>
-        <div class="stat"><strong id="qtyStat">0</strong><span>終了点数</span></div>
+        <div class="stat"><strong id="qtyStat">0</strong><span>入力点数</span></div>
         <div class="stat"><strong id="openingStat">0</strong><span>開始点数</span></div>
+      </div>
+
+      <div class="card checkpoint-card">
+        <strong>途中カウント / 日次締め</strong>
+        <div class="note" style="margin-top:4px">実際に数えて操作したSKUだけ保存します。Tシャツとは別の時間に数えても、終了時はSKUごとの最新カウントを使います。</div>
+        <div id="checkpointInfo" class="status"></div>
+        <div class="checkpoint-tools">
+          <button id="saveCheckpointButton" class="btn" type="button">途中カウント保存</button>
+          <button id="saveDailyButton" class="btn" type="button">日次締め保存</button>
+        </div>
       </div>
 
       <div class="card">
         <div class="row">
-          <div class="grow"><strong>終了実数を入力</strong><div class="note">未入力は0として扱います。開始在庫あり → 登録SKU → その他SKUの順です。</div></div>
+          <div class="grow"><strong>アクセサリー実数を入力</strong><div class="note">最終棚卸では全SKUを確定します。途中カウントでは、触ったSKUだけを保存できます。</div></div>
           <button id="reloadButton" class="btn" type="button">再読込</button>
         </div>
         <div class="tools"><button id="copyOpeningButton" class="btn" type="button">開始数をコピー</button><button id="zeroAllButton" class="btn" type="button">すべて0</button></div>
@@ -68,7 +79,7 @@
         <div id="sortNote" class="sort-note"></div>
         <div id="list" class="list"></div>
         <div id="draftInfo" class="status"></div>
-        <div class="tools"><button id="saveDraftButton" class="btn" type="button">途中保存</button><button id="confirmButton" class="btn accent" type="button">棚卸を確定</button></div>
+        <div class="tools"><button id="saveDraftButton" class="btn" type="button">終了棚卸を途中保存</button><button id="confirmButton" class="btn accent" type="button">棚卸を確定</button></div>
         <div id="message" class="status"></div>
       </div>
     </div>
@@ -84,18 +95,21 @@ const app=initializeApp(firebaseConfig);const auth=getAuth(app);const db=getFire
 const CATS=["pierce","earring","drop_pierce","drop_earring"];
 const CAT_LABEL={pierce:"ピアス",earring:"イヤリング",drop_pierce:"ドロップピアス",drop_earring:"ドロップイヤリング"};
 const $=id=>document.getElementById(id);
-let user=null,sessions=[],session=null,rows=[],values=new Map(),category="all",searchText="";
+let user=null,sessions=[],session=null,rows=[],values=new Map(),category="all",searchText="",checkpointTouched=new Set();
 
 function n(v){const x=Number(v);return Number.isFinite(x)?Math.max(0,Math.floor(x)):0}
 function text(v){return String(v??"").trim()}
 function esc(v){return text(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;")}
 function enc(v){return encodeURIComponent(text(v))}
-function timestampText(v){try{if(v?.toDate)return v.toDate().toLocaleString("ja-JP")}catch{}return ""}
+function timestampText(v){try{if(v?.toDate)return v.toDate().toLocaleString("ja-JP")}catch{}const d=new Date(v||"");return Number.isNaN(d.getTime())?"":d.toLocaleString("ja-JP")}
 function setMessage(msg,type=""){const el=$("message");el.textContent=msg;el.className=`status ${type}`.trim()}
 function categoryFor(sourceCategory,stockField){if(sourceCategory==="puraplara")return stockField==="piercing"?"drop_pierce":"drop_earring";return stockField==="piercing"?"pierce":"earring"}
 function variantId(category,sourceId){return["accessory",enc(category),enc(sourceId)].join("__")}
 function inventoryKey(sourceId,stockField){return`accessory:${enc(sourceId)}|${enc(stockField)}`}
 function decodeInventoryKey(value){const raw=text(value);if(!raw.startsWith("accessory:"))return null;const parts=raw.slice(10).split("|").map(x=>decodeURIComponent(x));return parts.length===2?{sourceId:parts[0],stockField:parts[1]}:null}
+function makeId(prefix){return globalThis.crypto?.randomUUID?`${prefix}_${globalThis.crypto.randomUUID()}`:`${prefix}_${Date.now()}_${Math.random().toString(36).slice(2,10)}`}
+function relevantFlowEntries(data){return(Array.isArray(data?.inventoryCount?.flowEntries)?data.inventoryCount.flowEntries:[]).filter(x=>["restock","opening_correction"].includes(text(x?.type)))}
+function soldSnapshot(data){const source=data?.inventoryCount?.soldByVariant;return source&&typeof source==="object"&&!Array.isArray(source)?Object.fromEntries(Object.entries(source).map(([k,v])=>[text(k),n(v)]).filter(([k])=>k)):{} }
 
 async function loadSessions(){
   const snap=await getDocs(collection(db,"salesSessions"));
@@ -125,7 +139,6 @@ function buildRows(data,shared,variantDocs){
   const draftMap=new Map((data?.inventoryCount?.externalCounts?.accessory?.draftItems||[]).map(x=>[x.variantId,x]));
   const variantMap=new Map(variantDocs.filter(v=>CATS.includes(v.category)&&v.inventorySource==="accessory"&&v.active!==false).map(v=>[v.variantId||v.id,v]));
   const all=new Map();
-
   sharedRows(shared).forEach(row=>all.set(row.variantId,row));
   variantMap.forEach((v,id)=>{
     if(all.has(id))return;
@@ -140,8 +153,15 @@ function buildRows(data,shared,variantDocs){
   }).filter(r=>CATS.includes(r.category));
 
   rows.sort((a,b)=>(n(b.openingQty)>0)-(n(a.openingQty)>0)||(b.registered?1:0)-(a.registered?1:0)||CATS.indexOf(a.category)-CATS.indexOf(b.category)||n(b.priority)-n(a.priority)||text(a.label).localeCompare(text(b.label),"ja"));
-  values=new Map();
+  values=new Map();checkpointTouched=new Set();
   rows.forEach(r=>{const source=r.draft||r.closing;values.set(r.variantId,source&&source.closingQty!==null&&source.closingQty!==undefined&&source.closingQty!==""?n(source.closingQty):0)});
+}
+
+function latestAccessoryCheckpoint(data){
+  const ids=new Set(rows.map(r=>r.variantId));
+  return [...(Array.isArray(data?.inventoryCount?.checkpoints)?data.inventoryCount.checkpoints:[])]
+    .filter(cp=>(cp?.items||[]).some(item=>ids.has(text(item?.variantId))))
+    .sort((a,b)=>new Date(a?.capturedAtIso||0)-new Date(b?.capturedAtIso||0)).at(-1)||null;
 }
 
 function renderChips(){
@@ -154,18 +174,22 @@ function renderList(){
   const visible=filteredRows();
   $("list").innerHTML=visible.length?visible.map(r=>{
     const value=n(values.get(r.variantId));
-    const badge=n(r.openingQty)>0?'<span class="badge stocked">開始在庫あり</span>':r.registered?'<span class="badge registered">登録SKU</span>':'<span class="badge">その他SKU</span>';
-    return`<div class="item ${n(r.openingQty)>0?"stocked":""}" data-id="${esc(r.variantId)}"><div><div class="name">${esc(r.label||r.sku||r.variantId)}</div><div class="detail">${esc(CAT_LABEL[r.category]||r.category)}${r.detail&&r.detail!==(CAT_LABEL[r.category]||r.category)?` / ${esc(r.detail)}`:""}${r.sku?`<br>${esc(r.sku)}`:""}</div><div class="opening">開始 ${n(r.openingQty)}</div><div class="badges">${badge}</div></div><div class="step"><button type="button" data-step="-1" data-id="${esc(r.variantId)}">−</button><input class="qty" data-id="${esc(r.variantId)}" type="number" min="0" step="1" inputmode="numeric" value="${value}"><button type="button" data-step="1" data-id="${esc(r.variantId)}">＋</button></div></div>`
+    const touched=checkpointTouched.has(r.variantId);
+    const baseBadge=n(r.openingQty)>0?'<span class="badge stocked">開始在庫あり</span>':r.registered?'<span class="badge registered">登録SKU</span>':'<span class="badge">その他SKU</span>';
+    const counted=touched?'<span class="badge counted">今回カウント</span>':'';
+    return`<div class="item ${n(r.openingQty)>0?"stocked":""} ${touched?"counted":""}" data-id="${esc(r.variantId)}"><div><div class="name">${esc(r.label||r.sku||r.variantId)}</div><div class="detail">${esc(CAT_LABEL[r.category]||r.category)}${r.detail&&r.detail!==(CAT_LABEL[r.category]||r.category)?` / ${esc(r.detail)}`:""}${r.sku?`<br>${esc(r.sku)}`:""}</div><div class="opening">開始 ${n(r.openingQty)}</div><div class="badges">${baseBadge}${counted}</div></div><div class="step"><button type="button" data-step="-1" data-id="${esc(r.variantId)}">−</button><input class="qty" data-id="${esc(r.variantId)}" type="number" min="0" step="1" inputmode="numeric" value="${value}"><button type="button" data-step="1" data-id="${esc(r.variantId)}">＋</button></div></div>`
   }).join(""):'<div class="note" style="text-align:center;padding:24px 0">該当する商品はありません</div>';
   bindInputs();updateSummary();
-  $("sortNote").textContent=`全 ${rows.length} SKU / 開始在庫あり ${rows.filter(r=>n(r.openingQty)>0).length} SKU / 登録SKU ${rows.filter(r=>r.registered).length} SKU`;
+  $("sortNote").textContent=`全 ${rows.length} SKU / 開始在庫あり ${rows.filter(r=>n(r.openingQty)>0).length} SKU / 今回カウント ${checkpointTouched.size} SKU`;
 }
+function markTouched(id){if(id)checkpointTouched.add(id)}
 function bindInputs(){
-  document.querySelectorAll(".qty").forEach(i=>i.addEventListener("input",()=>{values.set(i.dataset.id,n(i.value));if(i.value==="")i.value="0";updateSummary()}));
-  document.querySelectorAll("[data-step]").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.id,next=Math.max(0,n(values.get(id))+Number(b.dataset.step));values.set(id,next);const input=document.querySelector(`.qty[data-id="${CSS.escape(id)}"]`);if(input)input.value=String(next);updateSummary()}));
+  document.querySelectorAll(".qty").forEach(i=>i.addEventListener("input",()=>{values.set(i.dataset.id,n(i.value));markTouched(i.dataset.id);if(i.value==="")i.value="0";renderList()}));
+  document.querySelectorAll("[data-step]").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.id,next=Math.max(0,n(values.get(id))+Number(b.dataset.step));values.set(id,next);markTouched(id);renderList()}));
 }
 function updateSummary(){$("targetStat").textContent=rows.length;$("qtyStat").textContent=[...values.values()].reduce((s,v)=>s+n(v),0);$("openingStat").textContent=rows.reduce((s,r)=>s+n(r.openingQty),0)}
 function itemsFromValues(){return rows.map(r=>({variantId:r.variantId,closingQty:n(values.get(r.variantId))}))}
+function checkpointItemsFromTouched(){return rows.filter(r=>checkpointTouched.has(r.variantId)).map(r=>({variantId:r.variantId,physicalQty:n(values.get(r.variantId))}))}
 
 async function chooseSession(id){
   setMessage("");
@@ -178,13 +202,37 @@ async function chooseSession(id){
   $("countPanel").classList.toggle("hidden",!rows.length);
   if(!rows.length){$("eventMeta").textContent+=" / アクセサリーSKUがありません";return}
   renderChips();renderList();
-  const ext=session?.inventoryCount?.externalCounts?.accessory;$("draftInfo").textContent=ext?.status==="confirmed"?`前回確定: ${timestampText(ext.confirmedAt)||"保存済み"}`:ext?.status==="draft"?`途中保存あり: ${timestampText(ext.savedAt)||"保存済み"}`:"";
+  const ext=session?.inventoryCount?.externalCounts?.accessory;$("draftInfo").textContent=ext?.status==="confirmed"?`前回確定: ${timestampText(ext.confirmedAt)||"保存済み"}`:ext?.status==="draft"?`終了棚卸の途中保存あり: ${timestampText(ext.savedAt)||"保存済み"}`:"";
+  const cp=latestAccessoryCheckpoint(session);$("checkpointInfo").textContent=cp?`前回のアクセサリーカウント: ${cp.type==="daily_close"?"日次締め":"途中カウント"} / ${timestampText(cp.capturedAtIso)||"保存済み"}`:"まだ途中カウントはありません。";
+  const canCheckpoint=session.status==="open";$("saveCheckpointButton").disabled=!canCheckpoint;$("saveDailyButton").disabled=!canCheckpoint;
+}
+
+async function saveCheckpoint(type){
+  if(!session)return;
+  if(session.status!=="open")throw new Error("POS停止後は途中カウントを追加できません。終了棚卸を進めてください。");
+  const items=checkpointItemsFromTouched();
+  if(!items.length)throw new Error("数えたSKUがありません。数量を操作した商品だけ途中カウントに保存します。");
+  const ref=doc(db,"salesSessions",session.sessionId);
+  const label=type==="daily_close"?new Date().toLocaleDateString("ja-JP"):"アクセサリー";
+  let saved=null;
+  await runTransaction(db,async tx=>{
+    const snap=await tx.get(ref);if(!snap.exists())throw new Error("イベントが見つかりません。");
+    const current=snap.data();if(current.status!=="open")throw new Error("販売中のイベントだけ途中カウントを保存できます。");
+    if(!current?.inventoryCount?.opening)throw new Error("先に開始在庫を保存してください。");
+    const checkpoints=Array.isArray(current?.inventoryCount?.checkpoints)?current.inventoryCount.checkpoints:[];
+    saved={id:makeId("count"),type:type==="daily_close"?"daily_close":"checkpoint",label,capturedAtIso:new Date().toISOString(),capturedByEmail:user?.email||"",scope:"accessory",source:"accessory_stock_app",flowEntryCountAtCapture:relevantFlowEntries(current).length,soldByVariantSnapshot:soldSnapshot(current),items};
+    tx.update(ref,{"inventoryCount.checkpoints":[...checkpoints,saved],"inventoryCount.checkpointUpdatedAt":serverTimestamp(),"inventoryCount.updatedAt":serverTimestamp(),updatedAt:serverTimestamp()});
+  });
+  checkpointTouched.clear();
+  $("checkpointInfo").textContent=`${type==="daily_close"?"日次締め":"途中カウント"}を ${items.length} SKU 保存しました。終了時は変動がないSKUを再カウントせず利用できます。`;
+  setMessage(`${type==="daily_close"?"日次締め":"途中カウント"}を保存しました。会社の実在庫は変更していません。`,"ok");
+  renderList();
 }
 
 async function saveDraft(){
   if(!session)return;setMessage("保存中…");const items=itemsFromValues();
   await updateDoc(doc(db,"salesSessions",session.sessionId),{"inventoryCount.externalCounts.accessory":{status:"draft",source:"accessory_stock_app",savedAt:serverTimestamp(),savedByEmail:user?.email||"",draftItems:items,totalSkuCount:items.length},"inventoryCount.updatedAt":serverTimestamp(),updatedAt:serverTimestamp()});
-  setMessage("途中保存しました。Sales Managerの終了在庫にはまだ反映していません。","ok");await chooseSession(session.sessionId)
+  setMessage("終了棚卸を途中保存しました。Sales Managerの終了在庫にはまだ反映していません。","ok");await chooseSession(session.sessionId)
 }
 
 async function confirmCount(){
@@ -207,9 +255,11 @@ async function confirmCount(){
 $("loginButton").addEventListener("click",()=>signInWithPopup(auth,provider));
 $("sessionSelect").addEventListener("change",e=>e.target.value?chooseSession(e.target.value):$("countPanel").classList.add("hidden"));
 $("reloadButton").addEventListener("click",()=>session&&chooseSession(session.sessionId));
-$("copyOpeningButton").addEventListener("click",()=>{rows.forEach(r=>values.set(r.variantId,n(r.openingQty)));renderList()});
-$("zeroAllButton").addEventListener("click",()=>{rows.forEach(r=>values.set(r.variantId,0));renderList()});
+$("copyOpeningButton").addEventListener("click",()=>{rows.forEach(r=>{values.set(r.variantId,n(r.openingQty));checkpointTouched.add(r.variantId)});renderList()});
+$("zeroAllButton").addEventListener("click",()=>{rows.forEach(r=>{values.set(r.variantId,0);checkpointTouched.add(r.variantId)});renderList()});
 $("searchInput").addEventListener("input",e=>{searchText=text(e.target.value);renderList()});
+$("saveCheckpointButton").addEventListener("click",()=>saveCheckpoint("checkpoint").catch(e=>setMessage(e.message||String(e),"err")));
+$("saveDailyButton").addEventListener("click",()=>saveCheckpoint("daily_close").catch(e=>setMessage(e.message||String(e),"err")));
 $("saveDraftButton").addEventListener("click",()=>saveDraft().catch(e=>setMessage(e.message||String(e),"err")));
 $("confirmButton").addEventListener("click",()=>confirmCount().catch(e=>setMessage(e.message||String(e),"err")));
 
