@@ -23,65 +23,13 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-
-          old = '''      .stats-row {
-        gap: 7px;
-      }
-
-      .stat-card {
-        min-width: 0;
-        padding: 10px 10px;
-      }
-
-      .stat-card .num {
-        font-size: 20px;
-      }
-
-      .stat-card .lbl {
-        font-size: 11px;
-      }
-'''
-
-          new = '''      .stats-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-      }
-
-      .stat-card {
-        min-width: 0;
-        min-height: 84px;
-        padding: 12px 14px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-      }
-
-      .stat-card:last-child {
-        grid-column: 1 / -1;
-      }
-
-      .stat-card .num {
-        font-size: 24px;
-      }
-
-      .stat-card .lbl {
-        margin-top: 5px;
-        font-size: 12px;
-        line-height: 1.35;
-        word-break: keep-all;
-        overflow-wrap: normal;
-      }
-'''
-
+          old = "      .stats-row {\n        gap: 7px;\n      }\n\n      .stat-card {\n        min-width: 0;\n        padding: 10px 10px;\n      }\n\n      .stat-card .num {\n        font-size: 20px;\n      }\n\n      .stat-card .lbl {\n        font-size: 11px;\n      }\n"
+          new = "      .stats-row {\n        display: grid;\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n        gap: 8px;\n      }\n\n      .stat-card {\n        min-width: 0;\n        min-height: 84px;\n        padding: 12px 14px;\n        display: flex;\n        flex-direction: column;\n        justify-content: center;\n      }\n\n      .stat-card:last-child {\n        grid-column: 1 / -1;\n      }\n\n      .stat-card .num {\n        font-size: 24px;\n      }\n\n      .stat-card .lbl {\n        margin-top: 5px;\n        font-size: 12px;\n        line-height: 1.35;\n        word-break: keep-all;\n        overflow-wrap: normal;\n      }\n"
           if text.count(old) != 1:
               raise SystemExit(f'expected one mobile stats block, found {text.count(old)}')
-
-          text = text.replace(old, new, 1)
-          path.write_text(text, encoding='utf-8')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
           PY
 
       - name: Validate JavaScript
