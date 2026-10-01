@@ -490,18 +490,34 @@
     }
 
     .stock-pair.task-pair {
-      background: #FFF8E8;
-      border: 1px solid #F0D397;
+      display: block;
+      background: #F3F4F7;
+      border: 1px solid var(--line);
       border-radius: 10px;
-      padding: 9px;
+      padding: 9px 6px;
       margin-top: 9px;
     }
 
     .task-title {
       width: 100%;
+      margin-bottom: 8px;
       font-size: 11px;
       font-weight: 800;
-      color: #9B6512;
+      color: var(--ink-soft);
+    }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      flex-wrap: nowrap;
+    }
+
+    .task-row .stock-field {
+      flex: 1 1 0;
+      min-width: 0;
     }
 
     .badge-task {
@@ -1260,14 +1276,16 @@
 
           <div class="stock-pair task-pair">
             <div class="task-title">制作タスク</div>
-            <div class="stock-field">
-              <span class="fld-lbl">ピアス</span>
-              ${stepperHtml(item, "taskPiercing", "#E8A33D")}
-            </div>
+            <div class="task-row">
+              <div class="stock-field">
+                <span class="fld-lbl">ピアス</span>
+                ${stepperHtml(item, "taskPiercing", "#E8A33D")}
+              </div>
 
-            <div class="stock-field">
-              <span class="fld-lbl">イヤリング</span>
-              ${stepperHtml(item, "taskEarring", "#E8A33D")}
+              <div class="stock-field">
+                <span class="fld-lbl">イヤリング</span>
+                ${stepperHtml(item, "taskEarring", "#E8A33D")}
+              </div>
             </div>
           </div>
         </div>
