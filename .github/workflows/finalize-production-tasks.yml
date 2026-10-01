@@ -24,6 +24,7 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
+          import re
           p = Path('index.html')
           s = p.read_text(encoding='utf-8')
 
@@ -31,15 +32,21 @@ jobs:
               raise SystemExit('task-pair selector not found exactly once')
           s = s.replace('    .task-pair {', '    .stock-pair.task-pair {', 1)
 
-          old = '            earring: 0,\n            priority: 0'
-          count = s.count(old)
-          if count != 2:
-              raise SystemExit(f'new design initializer count expected 2, found {count}')
-          s = s.replace(
-              old,
-              '            earring: 0,\n            taskPiercing: 0,\n            taskEarring: 0,\n            priority: 0'
-          )
+          pattern = re.compile(r'(?m)^(\s+)earring: 0,\n\1priority: 0$')
+          matches = list(pattern.finditer(s))
+          if len(matches) != 2:
+              raise SystemExit(f'new design initializer count expected 2, found {len(matches)}')
 
+          def add_task_fields(match):
+              indent = match.group(1)
+              return (
+                  f'{indent}earring: 0,\n'
+                  f'{indent}taskPiercing: 0,\n'
+                  f'{indent}taskEarring: 0,\n'
+                  f'{indent}priority: 0'
+              )
+
+          s = pattern.sub(add_task_fields, s)
           p.write_text(s, encoding='utf-8')
           PY
 
@@ -47,12 +54,15 @@ jobs:
         run: |
           grep -q 'data-action="production-only"' index.html
           grep -q 'class="stock-pair task-pair"' index.html
-          grep -q 'taskPiercing: 0' index.html
-          grep -q 'taskEarring: 0' index.html
+          grep -q '制作予定<br>合計' index.html
           python - <<'PY'
           from pathlib import Path
           import re
           text = Path('index.html').read_text(encoding='utf-8')
+          if text.count('taskPiercing: 0') < 4:
+              raise SystemExit('taskPiercing initializers are incomplete')
+          if text.count('taskEarring: 0') < 4:
+              raise SystemExit('taskEarring initializers are incomplete')
           scripts = re.findall(r'<script(?:\s+type="module")?>(.*?)</script>', text, re.S)
           if len(scripts) < 2:
               raise SystemExit(f'expected at least 2 inline scripts, found {len(scripts)}')
@@ -62,11 +72,11 @@ jobs:
           node --check /tmp/accessories-main.mjs
           node --check /tmp/accessories-keyboard.js
 
-      - name: Commit finalized index and remove temporary workflow
+      - name: Commit finalized index and remove temporary workflows
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git rm .github/workflows/finalize-production-tasks.yml
+          git rm .github/workflows/finalize-production-tasks.yml .github/workflows/finalize-production-tasks-v2.yml
           git commit -m "Finalize accessory production task fields"
           git push origin HEAD:feat/production-tasks
