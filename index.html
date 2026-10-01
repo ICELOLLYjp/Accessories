@@ -489,6 +489,32 @@
       font-weight: 700;
     }
 
+    .task-pair {
+      background: #FFF8E8;
+      border: 1px solid #F0D397;
+      border-radius: 10px;
+      padding: 9px;
+      margin-top: 9px;
+    }
+
+    .task-title {
+      width: 100%;
+      font-size: 11px;
+      font-weight: 800;
+      color: #9B6512;
+    }
+
+    .badge-task {
+      background: #FFF3DA;
+      color: #9B6512;
+    }
+
+    .chip.task-active {
+      background: #E8A33D;
+      color: #fff;
+      border-color: #E8A33D;
+    }
+
     .stock-pair {
       display: flex;
       align-items: center;
@@ -703,6 +729,8 @@
           category: "standard",
           piercing: 0,
           earring: 0,
+          taskPiercing: 0,
+          taskEarring: 0,
           priority: 0
         });
       });
@@ -714,6 +742,8 @@
           category: "puraplara",
           piercing: 0,
           earring: 0,
+          taskPiercing: 0,
+          taskEarring: 0,
           priority: 0
         });
       });
@@ -731,6 +761,8 @@
               ...item,
               piercing: Math.max(0, Number(item.piercing || 0)),
               earring: Math.max(0, Number(item.earring || 0)),
+              taskPiercing: Math.max(0, Number(item.taskPiercing || 0)),
+              taskEarring: Math.max(0, Number(item.taskEarring || 0)),
               priority: Math.max(0, Number(item.priority || 0))
             }));
           }
@@ -748,6 +780,7 @@
       catFilter: "all",
       zeroOnly: false,
       priorityOnly: false,
+      productionOnly: false,
       stockSort: "default",
       panel: null,
       newCategory: "standard",
@@ -865,6 +898,8 @@
         ...item,
         piercing: Math.max(0, Number(item.piercing || 0)),
         earring: Math.max(0, Number(item.earring || 0)),
+        taskPiercing: Math.max(0, Number(item.taskPiercing || 0)),
+        taskEarring: Math.max(0, Number(item.taskEarring || 0)),
         priority: Math.max(0, Number(item.priority || 0))
       }));
     }
@@ -969,11 +1004,15 @@
       let puraplaraPiercing = 0;
       let puraplaraEarring = 0;
       let zero = 0;
+      let productionTotal = 0;
 
       state.designs.forEach((item) => {
         const piercing = Number(item.piercing || 0);
         const earring = Number(item.earring || 0);
         const total = piercing + earring;
+        const taskPiercing = Number(item.taskPiercing || 0);
+        const taskEarring = Number(item.taskEarring || 0);
+        productionTotal += taskPiercing + taskEarring;
 
         if (item.category === "standard") {
           standardPiercing += piercing;
@@ -992,7 +1031,8 @@
         standardEarring,
         puraplaraPiercing,
         puraplaraEarring,
-        zero
+        zero,
+        productionTotal
       };
     }
 
@@ -1091,12 +1131,23 @@
           return false;
         }
 
+        if (state.productionOnly) {
+          const productionTotal = Number(item.taskPiercing || 0) + Number(item.taskEarring || 0);
+          if (productionTotal <= 0) return false;
+        }
+
         return true;
       });
     }
 
     function stepperHtml(item, field, accent) {
       const value = Math.max(0, Number(item[field] || 0));
+      const fieldLabels = {
+        piercing: "ピアス在庫",
+        earring: "イヤリング在庫",
+        taskPiercing: "ピアス制作タスク",
+        taskEarring: "イヤリング制作タスク"
+      };
 
       return `
         <div class="stepper">
@@ -1119,7 +1170,7 @@
             data-action="number"
             data-id="${escapeHtml(item.id)}"
             data-field="${field}"
-            aria-label="${field === "piercing" ? "ピアス在庫" : "イヤリング在庫"}"
+            aria-label="${fieldLabels[field] || "数量"}"
           >
 
           <button
@@ -1140,6 +1191,9 @@
       const total = Number(item.piercing || 0) + Number(item.earring || 0);
       const shared = nameCounts[item.name] > 1;
       const priority = Number(item.priority || 0);
+      const taskPiercing = Number(item.taskPiercing || 0);
+      const taskEarring = Number(item.taskEarring || 0);
+      const taskTotal = taskPiercing + taskEarring;
 
       return `
         <div class="card${total === 0 ? " zero-stock" : ""}">
@@ -1187,6 +1241,7 @@
           <div class="badge-row">
             <span class="badge badge-${escapeHtml(item.category)}">${escapeHtml(info.sub)}</span>
             ${priority > 0 ? `<span class="badge badge-priority">制作優先 ${priority}</span>` : ""}
+            ${taskTotal > 0 ? `<span class="badge badge-task">制作 ${taskTotal}点</span>` : ""}
             ${shared ? '<span class="badge badge-shared">同名デザインあり</span>' : ""}
             ${total === 0 ? '<span class="badge badge-out">在庫切れ</span>' : ""}
           </div>
@@ -1200,6 +1255,19 @@
             <div class="stock-field">
               <span class="fld-lbl">イヤリング</span>
               ${stepperHtml(item, "earring", info.color)}
+            </div>
+          </div>
+
+          <div class="stock-pair task-pair">
+            <div class="task-title">制作タスク</div>
+            <div class="stock-field">
+              <span class="fld-lbl">ピアス</span>
+              ${stepperHtml(item, "taskPiercing", "#E8A33D")}
+            </div>
+
+            <div class="stock-field">
+              <span class="fld-lbl">イヤリング</span>
+              ${stepperHtml(item, "taskEarring", "#E8A33D")}
             </div>
           </div>
         </div>
@@ -1403,6 +1471,11 @@
             <div class="num">${stats.zero}</div>
             <div class="lbl">在庫切れ</div>
           </div>
+
+          <div class="stat-card">
+            <div class="num">${stats.productionTotal}</div>
+            <div class="lbl">制作予定<br>合計</div>
+          </div>
         </div>
 
         <div class="controls">
@@ -1446,6 +1519,12 @@
             class="chip${state.priorityOnly ? " priority-active" : ""}"
             data-action="priority-only"
           >★ 優先のみ</button>
+
+          <button
+            type="button"
+            class="chip${state.productionOnly ? " task-active" : ""}"
+            data-action="production-only"
+          >制作タスクあり</button>
 
           <select id="stockSort" class="sort-select" aria-label="在庫数で並び替え">
             <option value="default"${state.stockSort === "default" ? " selected" : ""}>登録順</option>
@@ -1606,6 +1685,12 @@
 
       if (action === "priority-only") {
         state.priorityOnly = !state.priorityOnly;
+        render();
+        return;
+      }
+
+      if (action === "production-only") {
+        state.productionOnly = !state.productionOnly;
         render();
         return;
       }
