@@ -1,0 +1,45 @@
+name: Apply production task layout v2
+
+on:
+  push:
+    branches:
+      - fix/production-task-layout
+    paths:
+      - .github/workflows/apply-production-task-layout-v2.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/production-task-layout
+          fetch-depth: 0
+
+      - name: Apply layout patch
+        run: python scripts/apply_production_task_layout.py
+
+      - name: Validate JavaScript
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text = Path('index.html').read_text(encoding='utf-8')
+          scripts = re.findall(r'<script(?:\s+type="module")?>(.*?)</script>', text, re.S)
+          Path('/tmp/accessories-main.mjs').write_text(scripts[0], encoding='utf-8')
+          Path('/tmp/accessories-keyboard.js').write_text(scripts[-1], encoding='utf-8')
+          PY
+          node --check /tmp/accessories-main.mjs
+          node --check /tmp/accessories-keyboard.js
+
+      - name: Commit layout update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm scripts/apply_production_task_layout.py .github/workflows/apply-production-task-layout.yml .github/workflows/apply-production-task-layout-v2.yml
+          git commit -m "Align production task controls and use light gray background"
+          git push origin HEAD:fix/production-task-layout
