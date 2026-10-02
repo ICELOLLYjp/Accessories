@@ -365,6 +365,7 @@
       border-radius: 14px;
       padding: 12px;
       position: relative;
+      container-type: inline-size;
     }
 
     .card.zero-stock {
@@ -634,6 +635,18 @@
       padding: 40px 16px;
       color: var(--ink-soft);
       font-size: 14px;
+    }
+
+    @container (max-width: 330px) {
+      .task-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .task-row .stock-field {
+        flex: 1 1 100%;
+        justify-content: space-between;
+      }
     }
 
     @media (max-width: 560px) {
