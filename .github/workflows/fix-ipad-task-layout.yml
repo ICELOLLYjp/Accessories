@@ -25,60 +25,16 @@ jobs:
           from pathlib import Path
           path = Path('index.html')
           text = path.read_text(encoding='utf-8')
-
-          old_card = '''    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      position: relative;
-    }
-'''
-          new_card = '''    .card {
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      position: relative;
-      container-type: inline-size;
-    }
-'''
+          old_card = "    .card {\n      background: var(--surface);\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 12px;\n      position: relative;\n    }\n"
+          new_card = "    .card {\n      background: var(--surface);\n      border: 1px solid var(--line);\n      border-radius: 14px;\n      padding: 12px;\n      position: relative;\n      container-type: inline-size;\n    }\n"
           if text.count(old_card) != 1:
               raise SystemExit(f'card block match count: {text.count(old_card)}')
           text = text.replace(old_card, new_card, 1)
-
-          marker = '''    .empty-state {
-      text-align: center;
-      padding: 40px 16px;
-      color: var(--ink-soft);
-      font-size: 14px;
-    }
-
-'''
-          addition = '''    .empty-state {
-      text-align: center;
-      padding: 40px 16px;
-      color: var(--ink-soft);
-      font-size: 14px;
-    }
-
-    @container (max-width: 330px) {
-      .task-row {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .task-row .stock-field {
-        flex: 1 1 100%;
-        justify-content: space-between;
-      }
-    }
-
-'''
+          marker = "    .empty-state {\n      text-align: center;\n      padding: 40px 16px;\n      color: var(--ink-soft);\n      font-size: 14px;\n    }\n\n"
+          addition = "    .empty-state {\n      text-align: center;\n      padding: 40px 16px;\n      color: var(--ink-soft);\n      font-size: 14px;\n    }\n\n    @container (max-width: 330px) {\n      .task-row {\n        flex-wrap: wrap;\n        gap: 6px;\n      }\n\n      .task-row .stock-field {\n        flex: 1 1 100%;\n        justify-content: space-between;\n      }\n    }\n\n"
           if text.count(marker) != 1:
               raise SystemExit(f'empty-state marker count: {text.count(marker)}')
           text = text.replace(marker, addition, 1)
-
           path.write_text(text, encoding='utf-8')
           PY
 
