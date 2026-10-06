@@ -370,6 +370,14 @@
       container-type: inline-size;
     }
 
+    .card.card-standard {
+      background: #F3FBF9;
+    }
+
+    .card.card-puraplara {
+      background: #FFF5F8;
+    }
+
     .card.zero-stock {
       border-color: var(--puraplara);
     }
@@ -639,15 +647,37 @@
       font-size: 14px;
     }
 
-    @container (max-width: 330px) {
-      .task-row {
-        flex-wrap: wrap;
-        gap: 6px;
-      }
+    @media (min-width: 700px) {
+      @container (max-width: 330px) {
+        .stock-pair:not(.task-pair) {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 6px;
+        }
 
-      .task-row .stock-field {
-        flex: 1 1 100%;
-        justify-content: space-between;
+        .stock-pair:not(.task-pair) .stock-field,
+        .task-row .stock-field {
+          display: grid;
+          grid-template-columns: 68px minmax(0, 1fr);
+          align-items: center;
+          gap: 6px;
+          width: 100%;
+        }
+
+        .task-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 6px;
+        }
+
+        .task-row .stock-field {
+          flex: none;
+          justify-content: initial;
+        }
+
+        .stock-field .stepper {
+          justify-self: start;
+        }
       }
     }
 
@@ -991,6 +1021,23 @@
       }));
     }
 
+    function designsEqual(a, b) {
+      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+
+      return a.every((item, index) => {
+        const other = b[index];
+        return Boolean(other)
+          && item.id === other.id
+          && item.name === other.name
+          && item.category === other.category
+          && Number(item.piercing || 0) === Number(other.piercing || 0)
+          && Number(item.earring || 0) === Number(other.earring || 0)
+          && Number(item.taskPiercing || 0) === Number(other.taskPiercing || 0)
+          && Number(item.taskEarring || 0) === Number(other.taskEarring || 0)
+          && Number(item.priority || 0) === Number(other.priority || 0);
+      });
+    }
+
     async function initializeCloudSync() {
       setSyncStatus("Firebaseに接続しています…");
 
@@ -1030,11 +1077,16 @@
             const cloudDesigns = normalizeCloudDesigns(liveSnapshot.data()?.designs);
             if (!cloudDesigns) return;
 
+            if (designsEqual(state.designs, cloudDesigns)) {
+              setSyncStatus("共有済み", "ok");
+              return;
+            }
+
             applyingCloudSnapshot = true;
             state.designs = cloudDesigns;
             normalizePriorities();
             saveLocal();
-            render();
+            render({ preserveScroll: true });
             applyingCloudSnapshot = false;
 
             setSyncStatus("共有済み", "ok");
@@ -1149,7 +1201,7 @@
       }
 
       saveDesigns();
-      render();
+      render({ anchorId: id });
     }
 
     function movePriority(id, direction) {
@@ -1173,7 +1225,7 @@
       target.priority = currentPriority;
 
       saveDesigns();
-      render();
+      render({ anchorId: id });
     }
 
     function sortByStock(items) {
@@ -1283,7 +1335,7 @@
       const taskTotal = taskPiercing + taskEarring;
 
       return `
-        <div class="card${total === 0 ? " zero-stock" : ""}">
+        <div class="card card-${escapeHtml(item.category)}${total === 0 ? " zero-stock" : ""}" data-card-id="${escapeHtml(item.id)}">
           <div class="card-top">
             <div class="card-name">${escapeHtml(item.name)}</div>
 
@@ -1536,8 +1588,20 @@
       return "";
     }
 
+    function findRenderedCard(id) {
+      const app = document.getElementById("app");
+      if (!app || !id) return null;
+      return [...app.querySelectorAll("[data-card-id]")].find(
+        (card) => card.dataset.cardId === id
+      ) || null;
+    }
+
     function render(options = {}) {
       const app = document.getElementById("app");
+      const anchorId = options.anchorId || null;
+      const anchorBefore = anchorId ? findRenderedCard(anchorId) : null;
+      const anchorTop = anchorBefore ? anchorBefore.getBoundingClientRect().top : null;
+      const scrollBefore = window.scrollY;
       const focused = document.activeElement;
       const quantityKey = focused?.matches?.(".stepper-num") && app.contains(focused)
         ? [focused.dataset.id, focused.dataset.field] : null;
@@ -1721,6 +1785,20 @@
       if (options.focus === "bulkText") {
         document.getElementById("bulkText")?.focus();
       }
+
+      if (anchorTop !== null) {
+        const anchorAfter = findRenderedCard(anchorId);
+        if (anchorAfter) {
+          const delta = anchorAfter.getBoundingClientRect().top - anchorTop;
+          if (Math.abs(delta) > 0.5) {
+            window.scrollBy(0, delta);
+          }
+        } else if (Math.abs(window.scrollY - scrollBefore) > 0.5) {
+          window.scrollTo(0, scrollBefore);
+        }
+      } else if (options.preserveScroll && Math.abs(window.scrollY - scrollBefore) > 0.5) {
+        window.scrollTo(0, scrollBefore);
+      }
     }
 
     function attachFormHandlers() {
@@ -1847,7 +1925,7 @@
         item.taskEarring = 0;
 
         saveDesigns();
-        render();
+        render({ anchorId: id });
         return;
       }
 
@@ -1885,7 +1963,7 @@
         item[taskField] = taskCount - amount;
 
         saveDesigns();
-        render();
+        render({ anchorId: id });
         return;
       }
 
@@ -1961,7 +2039,7 @@
         item[field] = action === "increment" ? current + 1 : Math.max(0, current - 1);
 
         saveDesigns();
-        render();
+        render({ anchorId: id });
       }
     });
 
@@ -2002,7 +2080,7 @@
       }
 
       if (event.target.matches('[data-action="number"]')) {
-        render();
+        render({ anchorId: event.target.dataset.id });
       }
     });
 
