@@ -118,3 +118,17 @@ Sales Manager owns event sales and event business operations.
 The website owns public product presentation and ecommerce.
 
 Do not move another system's primary responsibility into this app without an explicit architecture decision.
+
+## 8. EC fulfillment and cross app reuse policy
+
+Recorded: 2026-10-11. Shared design reference: `ICELOLLYjp/Website/docs/EC_APP_RESPONSIBILITIES.md` and `Website/DATA_AUTHORITY.md`. Verify the latest code in each affected repository before extending a shared contract.
+
+Accessories remains the canonical authority for accessory designs and physical quantities in `accessoryStock/shared.designs`. The website owns customer presentation, online sale price, checkout, paid order state and customer shipping communication. Sales Manager owns event sales and event session operations.
+
+For paid EC orders, use one reviewed, idempotent, auditable inventory reservation and stock mutation path against the existing accessory authority, coordinated with event POS sales. Do not make a separate WooCommerce or future EC management app physical stock ledger, and do not implement a second stock change routine because an order originates online. Retain stable IDs and preserve unknown vs zero.
+
+Accessories do not universally require a supplier, T shirt Body, or T shirt production task. Do not add mandatory Body or supplier selectors for accessory products. A future EC operations app may show accessory stock, reservation and shipping readiness through an adapter, but Accessories remains the place for physical stock maintenance.
+
+The future unified EC operations app is an administrative front end over the existing systems, not an independent order or inventory database. A person reviewed supplier inquiry, production delay, or refund message belongs to the EC customer communication workflow, not this inventory app.
+
+This is target design, not confirmation that online accessory reservation and checkout integration has been implemented. No live inventory or storefront selling settings are changed by this documentation update.
