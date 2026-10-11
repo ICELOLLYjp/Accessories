@@ -139,4 +139,4 @@ Agreed 2026-10-11: Accessories packed or allocated for an event must be excluded
 
 Exact SKU event sales already decrement canonical stock through approved Sales Manager paths. Reflect the sold quantity in the event hold without a second stock reduction. Keep offline holds conservative until sales synchronize. Do not assign unknown Quick sales to an arbitrary accessory SKU. Preserve stable design and category IDs and reuse existing reservation and event inventory integration rather than building new independent inventory counters.
 
-Hold activation and unsold stock release timing are pending user decisions. No live accessory data changes from this documentation update.
+Hold activation starts when the operator confirms and saves the event packing quantity (approved 2026-10-11), not at event opening or while packing entries are still drafts. Reuse Sales Manager event quantity registration where practical and apply later confirmed changes only once. The timing for release of unsold stock remains undecided. No live accessory data changes from this documentation update.
