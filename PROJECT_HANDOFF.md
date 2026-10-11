@@ -132,3 +132,11 @@ Accessories do not universally require a supplier, T shirt Body, or T shirt prod
 The future unified EC operations app is an administrative front end over the existing systems, not an independent order or inventory database. A person reviewed supplier inquiry, production delay, or refund message belongs to the EC customer communication workflow, not this inventory app.
 
 This is target design, not confirmation that online accessory reservation and checkout integration has been implemented. No live inventory or storefront selling settings are changed by this documentation update.
+
+## 9. Event allocation held out of EC saleable accessory stock
+
+Agreed 2026-10-11: Accessories packed or allocated for an event must be excluded from WooCommerce available accessory stock by an event linked reservation, without physically decrementing `accessoryStock/shared.designs` on allocation. Sales Manager remains the event Session and inventory operation authority; Accessories remains the canonical company stock authority.
+
+Exact SKU event sales already decrement canonical stock through approved Sales Manager paths. Reflect the sold quantity in the event hold without a second stock reduction. Keep offline holds conservative until sales synchronize. Do not assign unknown Quick sales to an arbitrary accessory SKU. Preserve stable design and category IDs and reuse existing reservation and event inventory integration rather than building new independent inventory counters.
+
+Hold activation and unsold stock release timing are pending user decisions. No live accessory data changes from this documentation update.
