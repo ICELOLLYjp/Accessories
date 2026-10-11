@@ -767,6 +767,7 @@
       getFirestore,
       doc,
       getDoc,
+      runTransaction,
       setDoc,
       onSnapshot,
       serverTimestamp
@@ -984,28 +985,47 @@
       }
     }
 
+    import { saveInventoryEdit, mergeEdit, equal } from './inventory-concurrency.mjs';
+    let designBaseline = null, designSaveBusy = false, designSaveBlocked = false, designDirty = false;
     function saveDesigns() {
       saveLocal();
-
-      if (!cloudReady || applyingCloudSnapshot) {
+      if (!cloudReady || applyingCloudSnapshot) return;
+      if (designSaveBlocked || !designBaseline) {
+        setSyncStatus('保存未完了：再読込して入力を確認してください', 'error');
         return;
       }
-
+      designDirty = true;
       clearTimeout(cloudSaveTimer);
-      setSyncStatus("同期中…");
-
-      cloudSaveTimer = setTimeout(async () => {
-        try {
-          await setDoc(sharedRef, {
-            designs: state.designs,
-            updatedAt: serverTimestamp()
-          });
-          setSyncStatus("共有済み", "ok");
-        } catch (error) {
-          console.error("Firestoreへの保存に失敗しました。", error);
-          setSyncStatus("同期エラー", "error");
+      setSyncStatus('同期中…');
+      cloudSaveTimer = setTimeout(flushDesigns, 250);
+    }
+    async function flushDesigns() {
+      if(designSaveBusy || designSaveBlocked || !designDirty) return;
+      designSaveBusy = true;
+      designDirty = false;
+      const base = structuredClone(designBaseline), submitted = structuredClone(state.designs);
+      const operationId = crypto.randomUUID();
+      try {
+        let result;
+        for(let attempt=0; attempt<2; attempt++) {
+          try { result = await saveInventoryEdit({doc, runTransaction, serverTimestamp}, db, sharedRef, base, {designs:submitted}, operationId); break; }
+          catch(error) { if(attempt || !['unavailable','deadline-exceeded','unknown'].includes(error.code)) throw error; }
         }
-      }, 250);
+        // Preserve edits made while the request was in flight, without turning
+        // unrelated remote changes into local edits in the next request.
+        if(designDirty) state.designs = mergeEdit(submitted, state.designs, result.designs, 'designs');
+        designBaseline = structuredClone(result);
+        if(!designDirty) { state.designs = normalizeCloudDesigns(result.designs); saveLocal(); render({preserveScroll:true}); }
+        setSyncStatus(designDirty ? '同期中…' : '共有済み', designDirty ? '' : 'ok');
+      } catch(error) {
+        designSaveBlocked = true;
+        try { localStorage.setItem('icelolly-accessory-unsaved-a1', JSON.stringify({base, designs:state.designs, operationId})); } catch(_) {}
+        setSyncStatus('保存未完了：再読込して入力を確認してください', 'error');
+        alert(error.message || '保存できませんでした。');
+      } finally {
+        designSaveBusy = false;
+        if(designDirty && !designSaveBlocked) void flushDesigns();
+      }
     }
 
     function normalizeCloudDesigns(items) {
@@ -1013,30 +1033,14 @@
 
       return items.map((item) => ({
         ...item,
-        piercing: Math.max(0, Number(item.piercing || 0)),
-        earring: Math.max(0, Number(item.earring || 0)),
+
         taskPiercing: Math.max(0, Number(item.taskPiercing || 0)),
         taskEarring: Math.max(0, Number(item.taskEarring || 0)),
         priority: Math.max(0, Number(item.priority || 0))
       }));
     }
 
-    function designsEqual(a, b) {
-      if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
-
-      return a.every((item, index) => {
-        const other = b[index];
-        return Boolean(other)
-          && item.id === other.id
-          && item.name === other.name
-          && item.category === other.category
-          && Number(item.piercing || 0) === Number(other.piercing || 0)
-          && Number(item.earring || 0) === Number(other.earring || 0)
-          && Number(item.taskPiercing || 0) === Number(other.taskPiercing || 0)
-          && Number(item.taskEarring || 0) === Number(other.taskEarring || 0)
-          && Number(item.priority || 0) === Number(other.priority || 0);
-      });
-    }
+    function designsEqual(a, b) { return equal(a, b); }
 
     async function initializeCloudSync() {
       setSyncStatus("Firebaseに接続しています…");
@@ -1045,6 +1049,7 @@
         const snapshot = await getDoc(sharedRef);
 
         if (snapshot.exists()) {
+          designBaseline = structuredClone(snapshot.data());
           const cloudDesigns = normalizeCloudDesigns(snapshot.data()?.designs);
 
           if (cloudDesigns) {
@@ -1056,10 +1061,7 @@
             applyingCloudSnapshot = false;
           }
         } else {
-          await setDoc(sharedRef, {
-            designs: state.designs,
-            updatedAt: serverTimestamp()
-          });
+          throw new Error('在庫マスターがありません。管理者による移行が必要です。');
         }
 
         cloudReady = true;
@@ -1072,7 +1074,8 @@
         unsubscribeSnapshot = onSnapshot(
           sharedRef,
           (liveSnapshot) => {
-            if (!liveSnapshot.exists()) return;
+            if (!liveSnapshot.exists() || liveSnapshot.metadata.hasPendingWrites || designSaveBusy || designDirty || designSaveBlocked) return;
+            designBaseline = structuredClone(liveSnapshot.data());
 
             const cloudDesigns = normalizeCloudDesigns(liveSnapshot.data()?.designs);
             if (!cloudDesigns) return;
