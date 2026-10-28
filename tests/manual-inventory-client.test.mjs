@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createAccessoryManualClient} from './manual-inventory-client.mjs';
-import {manualInventoryEndpoint} from './manual-inventory-config.mjs';
+import {createAccessoryManualClient} from '../manual-inventory-client.mjs';
+import {manualInventoryEndpoint} from '../manual-inventory-config.mjs';
 const input={sku:{designId:'d',quantityField:'piercing'},expectedRevision:3,expectedQuantity:5,quantity:4};
 function fixture(responses=[]){
   const store=new Map(),requests=[];let id=0;

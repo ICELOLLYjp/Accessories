@@ -2142,7 +2142,10 @@
           if(!/^\d+$/.test(raw) || !Number.isSafeInteger(Number(raw))){
             alert('0以上の整数を入力してください。');render({anchorId:id});return;
           }
-          await saveAccessoryQuantityViaMethodB(id,field,Number(raw));
+          const saved=await saveAccessoryQuantityViaMethodB(id,field,Number(raw));
+          // Failed/unconfirmed edits must not remain displayed as stock counts.
+          // Keep any pending operation intact for the next same-ID lookup.
+          if(!saved)render({anchorId:id});
           return;
         }
         render({ anchorId: id });

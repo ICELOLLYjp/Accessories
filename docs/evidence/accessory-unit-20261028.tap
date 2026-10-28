@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: 1 different SKUs: both edits survive a real optimistic retry
+ok 1 - 1 different SKUs: both edits survive a real optimistic retry
+  ---
+  duration_ms: 14.8316
+  type: 'test'
+  ...
+# Subtest: 2 same SKU: two deltas accumulate; stale absolute edit is rejected
+ok 2 - 2 same SKU: two deltas accumulate; stale absolute edit is rejected
+  ---
+  duration_ms: 2.7667
+  type: 'test'
+  ...
+# Subtest: 3 stale full save preserves untouched remote SKU and metadata
+ok 3 - 3 stale full save preserves untouched remote SKU and metadata
+  ---
+  duration_ms: 1.5915
+  type: 'test'
+  ...
+# Subtest: 4 POS then inventory screen: same SKU cannot restore sold stock
+ok 4 - 4 POS then inventory screen: same SKU cannot restore sold stock
+  ---
+  duration_ms: 0.9721
+  type: 'test'
+  ...
+# Subtest: 5 cancellation vs adjustment: no lost cancellation
+ok 5 - 5 cancellation vs adjustment: no lost cancellation
+  ---
+  duration_ms: 1.3423
+  type: 'test'
+  ...
+# Subtest: 6 production is atomic with resources/task; conflict changes none
+ok 6 - 6 production is atomic with resources/task; conflict changes none
+  ---
+  duration_ms: 1.7051
+  type: 'test'
+  ...
+# Subtest: 7 explicit zero, absent cell, null and unknown remain distinct
+ok 7 - 7 explicit zero, absent cell, null and unknown remain distinct
+  ---
+  duration_ms: 0.2106
+  type: 'test'
+  ...
+# Subtest: 8 failure before commit then retry applies once
+ok 8 - 8 failure before commit then retry applies once
+  ---
+  duration_ms: 1.6748
+  type: 'test'
+  ...
+# Subtest: 9 lost reply + intervening sale + duplicate retry never restores stock
+ok 9 - 9 lost reply + intervening sale + duplicate retry never restores stock
+  ---
+  duration_ms: 1.5668
+  type: 'test'
+  ...
+# Subtest: accessory IDs merge independently, delete conflicts, unknown preserved
+ok 10 - accessory IDs merge independently, delete conflicts, unknown preserved
+  ---
+  duration_ms: 1.4718
+  type: 'test'
+  ...
+# Subtest: legacy whole-document update denied by modeled gate; adapter refuses blind write
+ok 11 - legacy whole-document update denied by modeled gate; adapter refuses blind write
+  ---
+  duration_ms: 0.9028
+  type: 'test'
+  ...
+# Subtest: pending accessory edit rebases without reapplying stale remote fields
+ok 12 - pending accessory edit rebases without reapplying stale remote fields
+  ---
+  duration_ms: 0.1457
+  type: 'test'
+  ...
+# Subtest: actual flushDesigns preserves POS changes and blocks stale same-SKU edit
+ok 13 - actual flushDesigns preserves POS changes and blocks stale same-SKU edit
+  ---
+  duration_ms: 6.6751
+  type: 'test'
+  ...
+# Subtest: A01 lost reply then reload looks up original ID, never sends a new quantity
+ok 14 - A01 lost reply then reload looks up original ID, never sends a new quantity
+  ---
+  duration_ms: 3.82
+  type: 'test'
+  ...
+# Subtest: A02 unknown lookup retains ID; explicit retry submits identical payload
+ok 15 - A02 unknown lookup retains ID; explicit retry submits identical payload
+  ---
+  duration_ms: 0.377
+  type: 'test'
+  ...
+# Subtest: A03 expected conflicts require fresh explicit input
+ok 16 - A03 expected conflicts require fresh explicit input
+  ---
+  duration_ms: 0.5011
+  type: 'test'
+  ...
+# Subtest: A04 forged receipt, unauthorized and unknown conflict preserve pending
+ok 17 - A04 forged receipt, unauthorized and unknown conflict preserve pending
+  ---
+  duration_ms: 0.4104
+  type: 'test'
+  ...
+# Subtest: A05 failed storage blocks transmission
+ok 18 - A05 failed storage blocks transmission
+  ---
+  duration_ms: 0.1814
+  type: 'test'
+  ...
+# Subtest: A06 accessory SKU and immutable intent are transmitted
+ok 19 - A06 accessory SKU and immutable intent are transmitted
+  ---
+  duration_ms: 0.2471
+  type: 'test'
+  ...
+# Subtest: A07 invalid stored JSON does not silently replace the operation
+ok 20 - A07 invalid stored JSON does not silently replace the operation
+  ---
+  duration_ms: 0.43
+  type: 'test'
+  ...
+# Subtest: A08 endpoint remains disabled in repository
+ok 21 - A08 endpoint remains disabled in repository
+  ---
+  duration_ms: 0.1185
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 131.6591

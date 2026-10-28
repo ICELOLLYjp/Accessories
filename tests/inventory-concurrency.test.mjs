@@ -156,7 +156,7 @@ test('actual flushDesigns preserves POS changes and blocks stale same-SKU edit',
  const b={designs:[{id:'a',piercing:5},{id:'b',piercing:3}]};
  const db=mock({[accessoryPath]:b}),ref=db.api.doc(null,'accessoryStock','shared');
  await saveInventoryEdit(db.api,null,ref,b,{designs:[{id:'a',piercing:4},b.designs[1]]},'pos');
- const env={designSaveBusy:false,designSaveBlocked:false,designDirty:true,designBaseline:clone(b),state:{designs:[b.designs[0],{id:'b',piercing:2}]},
+ const env={methodBRequired:()=>false,designSaveBusy:false,designSaveBlocked:false,designDirty:true,designBaseline:clone(b),state:{designs:[b.designs[0],{id:'b',piercing:2}]},
    saveInventoryEdit,mergeEdit,...db.api,db:null,sharedRef:ref,crypto,structuredClone,localStorage:{setItem(){}},alert(){},setSyncStatus(){},saveLocal(){},render(){},normalizeCloudDesigns:x=>x};
  env.flushDesigns=Function('env','with(env){return ('+code+');}')(env);
  await env.flushDesigns();assert.deepEqual(env.state.designs,[{id:'a',piercing:4},{id:'b',piercing:2}]);
