@@ -1,0 +1,136 @@
+[36m[1mi  emulators:[22m[39m Starting emulators: auth, firestore
+[36m[1mi  emulators:[22m[39m Detected demo project ID "demo-icelolly-method-b", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+[36m[1mi  firestore:[22m[39m Firestore Emulator logging to [1mfirestore-debug.log[22m
+[32m[1m+  firestore:[22m[39m Firestore Emulator was started in standard edition.
+[32m[1m+  firestore:[22m[39m Firestore Emulator UI websocket is running on 9152.
+[36m[1mi [22m[39m Running script: [1mnode --test --test-concurrency=1 --test-timeout=60000 --test-reporter=tap ../../../../accessory-ui-20261028/tests/manual-ui-emulator.test.mjs[22m
+TAP version 13
+# (node:34180) MetadataLookupWarning: received unexpected error = All promises were rejected code = ETIMEDOUT, ENOTFOUND
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: UI01 actual change and +/- handlers persist piercing/earring through authenticated API and SDK reread
+not ok 1 - UI01 actual change and +/- handlers persist piercing/earring through authenticated API and SDK reread
+  ---
+  duration_ms: 4279.8903
+  type: 'test'
+  location: 'C:\\Users\\hirop\\.codex\\.chatgpt-projects\\g-p-6acc1992239c8191af960631573db97a\\accessory-ui-20261028\\tests\\manual-ui-emulator.test.mjs:58:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/hirop/.codex/.chatgpt-projects/g-p-6acc1992239c8191af960631573db97a/accessory-ui-20261028/tests/manual-ui-emulator.test.mjs:60:33)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+  ...
+# Subtest: UI02 reservation floor and stale revision reject without success; fresh quantities replace input
+ok 2 - UI02 reservation floor and stale revision reject without success; fresh quantities replace input
+  ---
+  duration_ms: 168.0134
+  type: 'test'
+  ...
+# Subtest: UI03 committed lost response reload resolves original ID without applying new input
+not ok 3 - UI03 committed lost response reload resolves original ID without applying new input
+  ---
+  duration_ms: 63.8071
+  type: 'test'
+  location: 'C:\\Users\\hirop\\.codex\\.chatgpt-projects\\g-p-6acc1992239c8191af960631573db97a\\accessory-ui-20261028\\tests\\manual-ui-emulator.test.mjs:69:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/hirop/.codex/.chatgpt-projects/g-p-6acc1992239c8191af960631573db97a/accessory-ui-20261028/tests/manual-ui-emulator.test.mjs:71:9)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: UI04 unknown result requires explicit same-payload retry
+not ok 4 - UI04 unknown result requires explicit same-payload retry
+  ---
+  duration_ms: 181.9219
+  type: 'test'
+  location: 'C:\\Users\\hirop\\.codex\\.chatgpt-projects\\g-p-6acc1992239c8191af960631573db97a\\accessory-ui-20261028\\tests\\manual-ui-emulator.test.mjs:77:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    5 !== 4
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 4
+  actual: 5
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/hirop/.codex/.chatgpt-projects/g-p-6acc1992239c8191af960631573db97a/accessory-ui-20261028/tests/manual-ui-emulator.test.mjs:81:70)
+    process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: UI05 unauthorized and disabled API never show unsaved input as confirmed quantity
+not ok 5 - UI05 unauthorized and disabled API never show unsaved input as confirmed quantity
+  ---
+  duration_ms: 13.2918
+  type: 'test'
+  location: 'C:\\Users\\hirop\\.codex\\.chatgpt-projects\\g-p-6acc1992239c8191af960631573db97a\\accessory-ui-20261028\\tests\\manual-ui-emulator.test.mjs:84:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    '2' !== '5'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '5'
+  actual: '2'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/hirop/.codex/.chatgpt-projects/g-p-6acc1992239c8191af960631573db97a/accessory-ui-20261028/tests/manual-ui-emulator.test.mjs:85:116)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: UI06 legacy save and flush fail closed in migration mode
+ok 6 - UI06 legacy save and flush fail closed in migration mode
+  ---
+  duration_ms: 30.0302
+  type: 'test'
+  ...
+# Subtest: UI07 invalid numeric input and unknown baseline quantity never submit
+ok 7 - UI07 invalid numeric input and unknown baseline quantity never submit
+  ---
+  duration_ms: 24.6444
+  type: 'test'
+  ...
+1..7
+# tests 7
+# suites 0
+# pass 3
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5632.9069
+[33m[1m! [22m[39m Script exited unsuccessfully (code 1)
+[36m[1mi  emulators:[22m[39m Shutting down emulators.
+[36m[1mi  firestore:[22m[39m Stopping Firestore Emulator
+[33m[1m! [22m[39m Firestore Emulator has exited upon receiving signal: SIGINT
+[36m[1mi  auth:[22m[39m Stopping Authentication Emulator
+[36m[1mi  hub:[22m[39m Stopping emulator hub
+[36m[1mi  logging:[22m[39m Stopping Logging Emulator
+
+[1m[31mError:[39m[22m Script "[1mnode --test --test-concurrency=1 --test-timeout=60000 --test-reporter=tap ../../../../accessory-ui-20261028/tests/manual-ui-emulator.test.mjs[22m" exited with code 1

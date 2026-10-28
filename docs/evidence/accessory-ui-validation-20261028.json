@@ -1,0 +1,94 @@
+{
+  "dateJST": "2026-10-28",
+  "node": "v24.21.0",
+  "baseHead": "210391870d54019bcb7dad3755f4aca4a4f325d4",
+  "serverHead": "95720dc9cec053bec3d4b44525e255e1f79692b3",
+  "server": [
+    {
+      "file": "http.mjs",
+      "gitBlob": "ec87b835d2f55ae54c685c60360580507b87fd8a",
+      "sha256": "86c399bab0c2963f6794f0093cddbeb173a924aa690abcc74d34f7fa22b9e7e5",
+      "matchesGitHub": true
+    },
+    {
+      "file": "inventory.mjs",
+      "gitBlob": "9a0e8473a56ebf279af56d6ae1e2395c179e7b16",
+      "sha256": "55eb2e2e8c50f7d4fc168ac7a882171d75131ac9e4dc9a43f7a09aa20ff66251",
+      "matchesGitHub": true
+    },
+    {
+      "file": "runtime.mjs",
+      "gitBlob": "e5686e1a2a80d661c94d3edd45b461fedcd37bd2",
+      "sha256": "780a965320f6b7f63f40745403882bdf95a1cfe76858dcb91f2e48ab631b394e",
+      "matchesGitHub": true
+    },
+    {
+      "file": "firestore.rules",
+      "gitBlob": "35a90186a606829a0762ffab4dbdcbf399b2c7cc",
+      "sha256": "82a0dee68f3de0c9da39b46b414e55d58d9be90804484580681b2ffe7dc9f883",
+      "matchesGitHub": true
+    },
+    {
+      "file": "firebase.json",
+      "gitBlob": "5c881aa437a016cc8e3981fa34b086fd98bbadda",
+      "sha256": "7d269595379866e5bbe14522248c910af09f1f5404010be228c96f87b230a12e",
+      "matchesGitHub": true
+    },
+    {
+      "file": "package-lock.json",
+      "gitBlob": "7c8da93c3b25a7443c4d629dfecb940ef9fe0659",
+      "sha256": "60d3c5f5bd789b730b284c13e7fb50d874c1340ff7a2945336deb10d2353079b",
+      "matchesGitHub": true
+    }
+  ],
+  "preservation": {
+    "repositories": 26,
+    "files": 97,
+    "allUnchanged": true,
+    "allBackupHashesMatch": true,
+    "consentFiles": 6,
+    "consentUnchanged": true
+  },
+  "tests": {
+    "unitAndLegacy": {
+      "pass": 21,
+      "fail": 0,
+      "skip": 0
+    },
+    "uiAuthFirestore": {
+      "pass": 7,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "earlierFailures": [
+    "Saved client tests failed module resolution before executing 8 cases; fixed ../ imports.",
+    "Initial emulator sandbox launch failed hub readiness.",
+    "VM extraction initially failed for CRLF checkout (0/7); normalized line endings.",
+    "Missing synthetic reservation authority caused fixture failures (3/7); added required server checkpoint.",
+    "Correct fixture reproduced disabled-input display defect (6/7); production handler fixed; final 7/7."
+  ],
+  "isolation": {
+    "project": "demo-icelolly-method-b",
+    "firestore": "127.0.0.1:8087",
+    "auth": "127.0.0.1:9098",
+    "credentials": "environment allowlist; no real credentials",
+    "nodeNetwork": "loopback-only preload",
+    "jvmNetwork": "No OS-level egress isolation claim",
+    "cleanup": "emulators:exec exit 0 and shutdown log"
+  },
+  "limitations": [
+    "DOM is a VM harness; browser rendering/device interaction not tested.",
+    "Authority is synthetic fixture, not production reconciliation.",
+    "No deploy, live stock, real Firestore, staging, production Rules/IAM, Woo, Stripe, purchase enablement or merge.",
+    "Endpoint remains null; remaining writers/offline/POS migration is incomplete."
+  ],
+  "sourceHashes": {
+    "index.html": "2dd3da717542f6fd56574da9a49d2b5d73dc261c9ca61c0c14d3f5f4839114cd",
+    "manual-inventory-client.mjs": "9d652860b78ce8113fb8d3762e68d31dfdd7950eeac01a748a1ed91f1a6cb441",
+    "manual-inventory-config.mjs": "529e7cd2e05018e732636c4588af18a837028f4ba4e3e49db3031aea044b784a",
+    "tests/manual-inventory-client.test.mjs": "4974cce9ab70a553fe31fb93d2bd887cd7dd296f5bc99887d87529ccc09cf9d2",
+    "tests/inventory-concurrency.test.mjs": "cc8c8a648217185d2ed12d7b15c9137c8fdc496c15213706b740c421aed26075",
+    "tests/manual-ui-emulator.test.mjs": "52d3b090c82aa8e55f1b5a4e75fd2ca70c796b616e83097f2961d0e55cf4ae45"
+  }
+}

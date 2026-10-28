@@ -1,0 +1,12 @@
+// Loaded before SDK/CLI imports in every Node child. Acquisition is a separate phase.
+const net = require('node:net');
+const original = net.Socket.prototype.connect;
+net.Socket.prototype.connect = function (...args) {
+  const normalized = net._normalizeArgs(args)[0];
+  const host = normalized.host || 'localhost';
+  if (normalized.path || !['127.0.0.1', '::1', 'localhost'].includes(host)) {
+    throw new Error('OUTBOUND_BLOCKED:' + host);
+  }
+  return original.apply(this, args);
+};
+process.env.NO_GCE_CHECK = 'true';

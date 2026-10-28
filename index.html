@@ -767,6 +767,7 @@
       getFirestore,
       doc,
       getDoc,
+      getDocFromServer,
       runTransaction,
       setDoc,
       onSnapshot,
@@ -986,8 +987,54 @@
     }
 
     import { saveInventoryEdit, mergeEdit, equal } from './inventory-concurrency.mjs';
+    import { createAccessoryManualClient } from './manual-inventory-client.mjs';
+    import { manualInventoryEndpoint } from './manual-inventory-config.mjs';
     let designBaseline = null, designSaveBusy = false, designSaveBlocked = false, designDirty = false;
+    const methodBRequired=()=>Boolean(manualInventoryEndpoint || designBaseline?.inventoryReservationAuthority===1);
+    let accessoryManualBusy=false;
+    async function saveAccessoryQuantityViaMethodB(designId,quantityField,quantity){
+      if(!['piercing','earring'].includes(quantityField) || !Number.isSafeInteger(quantity) || quantity<0){
+        alert('0以上の整数を入力してください。');return false;
+      }
+      if(!manualInventoryEndpoint || !currentUser || !cloudReady || accessoryManualBusy || designSaveBusy || designDirty || designSaveBlocked){
+        alert('共通在庫APIは未接続、または保存処理中です。数量は保存していません。');return false;
+      }
+      const uid=currentUser.uid,observed=designBaseline?.designs?.find(d=>d.id===designId);
+      const expectedQuantity=observed?.[quantityField],expectedRevision=designBaseline?.inventoryRevision;
+      if(!Number.isSafeInteger(expectedQuantity)||expectedQuantity<0||!Number.isSafeInteger(expectedRevision)||expectedRevision<0){
+        alert('在庫数量またはrevisionが未確認です。再読込してください。');return false;
+      }
+      const client=createAccessoryManualClient({endpoint:manualInventoryEndpoint,storage:localStorage,key:'icelolly-accessory-method-b-v1:'+uid,
+        getToken:()=>{if(currentUser?.uid!==uid)throw Error('認証が変わりました');return currentUser.getIdToken();}});
+      accessoryManualBusy=true;
+      try{
+        let result=await client.submit({sku:{designId,quantityField},expectedRevision,expectedQuantity,quantity});
+        if(result.status==='unknown' && confirm('前回の保存結果は不明です。同じ操作ID・数量で再送をしますか？')){
+          result=await client.retryPending();
+          if(result.status==='saved')result.status='recovered';
+        }
+        if(['saved','recovered','conflict'].includes(result.status)){
+          const fresh=await getDocFromServer(sharedRef);
+          if(!fresh.exists() || currentUser?.uid!==uid)throw Error('在庫または認証が確認できません');
+          const designs=normalizeCloudDesigns(fresh.data()?.designs);
+          if(!designs)throw Error('在庫データを確認できません');
+          designBaseline=structuredClone(fresh.data());
+          applyingCloudSnapshot=true;
+          state.designs=designs;
+          saveLocal();render({anchorId:designId});
+          applyingCloudSnapshot=false;
+        }
+        if(result.status==='conflict'){alert('在庫の競合です。最新数量を読み込みました。確認してから再入力してください。');return false;}
+        if(result.status==='recovered'){alert('前回の保存結果を確認しました。今回入力分は再確認してください。');return false;}
+        if(result.status!=='saved'){setSyncStatus('保存未確認：同じ操作IDで要照会','error');return false;}
+        setSyncStatus('共有済み','ok');return true;
+      }catch(error){
+        applyingCloudSnapshot=false;setSyncStatus('保存未確認：同じ操作IDで要照会','error');
+        alert(error.message||'保存結果を確認できませんでした');return false;
+      }finally{accessoryManualBusy=false;}
+    }
     function saveDesigns() {
+      if(methodBRequired()){setSyncStatus('旧保存は停止中です','error');alert('共通在庫API移行中のため、この編集は保存できません。');return;}
       saveLocal();
       if (!cloudReady || applyingCloudSnapshot) return;
       if (designSaveBlocked || !designBaseline) {
@@ -1000,6 +1047,7 @@
       cloudSaveTimer = setTimeout(flushDesigns, 250);
     }
     async function flushDesigns() {
+      if(methodBRequired()){designSaveBlocked=true;setSyncStatus('旧保存は停止中です','error');return;}
       if(designSaveBusy || designSaveBlocked || !designDirty) return;
       designSaveBusy = true;
       designDirty = false;
@@ -1074,7 +1122,7 @@
         unsubscribeSnapshot = onSnapshot(
           sharedRef,
           (liveSnapshot) => {
-            if (!liveSnapshot.exists() || liveSnapshot.metadata.hasPendingWrites || designSaveBusy || designDirty || designSaveBlocked) return;
+            if (!liveSnapshot.exists() || liveSnapshot.metadata.hasPendingWrites || accessoryManualBusy || designSaveBusy || designDirty || designSaveBlocked) return;
             designBaseline = structuredClone(liveSnapshot.data());
 
             const cloudDesigns = normalizeCloudDesigns(liveSnapshot.data()?.designs);
@@ -2039,6 +2087,10 @@
         if (!item) return;
 
         const current = Math.max(0, Number(item[field] || 0));
+        if((field==="piercing"||field==="earring") && methodBRequired()){
+          await saveAccessoryQuantityViaMethodB(id,field,action==="increment"?current+1:Math.max(0,current-1));
+          return;
+        }
         item[field] = action === "increment" ? current + 1 : Math.max(0, current - 1);
 
         saveDesigns();
@@ -2059,13 +2111,14 @@
         const item = state.designs.find((entry) => entry.id === id);
         if (!item) return;
 
+        if((field==="piercing"||field==="earring") && methodBRequired())return;
         const parsed = parseInt(event.target.value, 10);
         item[field] = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
         saveDesigns();
       }
     });
 
-    document.addEventListener("change", (event) => {
+    document.addEventListener("change", async (event) => {
       if (event.target.id === "stockSort") {
         state.stockSort = event.target.value;
         render();
@@ -2083,7 +2136,19 @@
       }
 
       if (event.target.matches('[data-action="number"]')) {
-        render({ anchorId: event.target.dataset.id });
+        const {id,field}=event.target.dataset;
+        if((field==="piercing"||field==="earring") && methodBRequired()){
+          const raw=event.target.value.trim();
+          if(!/^\d+$/.test(raw) || !Number.isSafeInteger(Number(raw))){
+            alert('0以上の整数を入力してください。');render({anchorId:id});return;
+          }
+          const saved=await saveAccessoryQuantityViaMethodB(id,field,Number(raw));
+          // Failed/unconfirmed edits must not remain displayed as stock counts.
+          // Keep any pending operation intact for the next same-ID lookup.
+          if(!saved)render({anchorId:id});
+          return;
+        }
+        render({ anchorId: id });
       }
     });
 
